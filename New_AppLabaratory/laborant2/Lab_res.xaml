@@ -1,0 +1,83 @@
+﻿<Window x:Class="AppLaboratory.Lab_res"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:AppLaboratory"
+        mc:Ignorable="d"
+        Title="Лаборатория — Исследователь" 
+        SizeToContent="WidthAndHeight" MinWidth="500"
+        WindowStartupLocation="CenterScreen"
+        FontFamily="Segoe UI" Background="#F0F4F8" 
+        Loaded="Window_Loaded">
+
+    <Grid>
+        <Grid.Resources>
+            <Style TargetType="TextBlock">
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="Foreground" Value="#666666"/>
+            </Style>
+
+            <Style TargetType="Button">
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="FontWeight" Value="Medium"/>
+                <Setter Property="Height" Value="40"/>
+                <Setter Property="Padding" Value="15,0"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Style.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="6"/>
+                    </Style>
+                </Style.Resources>
+            </Style>
+        </Grid.Resources>
+
+        <Border Background="White" CornerRadius="12" Margin="30" Padding="25">
+            <Border.Effect>
+                <DropShadowEffect Color="Gray" BlurRadius="15" Opacity="0.2" ShadowDepth="2"/>
+            </Border.Effect>
+
+            <StackPanel>
+                <Grid Margin="0,0,0,25">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Width="60" Height="60" CornerRadius="30" ClipToBounds="True" BorderBrush="#EAEAEA" BorderThickness="1">
+                        <Image Source="laborant_2.png" Stretch="UniformToFill"/>
+                    </Border>
+
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="15,0,0,0">
+                        <TextBlock x:Name="Name" Text="Имя" FontSize="18" FontWeight="SemiBold" Foreground="#333333"/>
+                        <TextBlock Text="Лаборант-исследователь" FontSize="14"/>
+                    </StackPanel>
+
+                    <Button Grid.Column="2" Content="Выйти" 
+                            VerticalAlignment="Top"
+                            FontWeight="Medium"
+                            Padding="12,5" Background="#6c757d" Foreground="White" 
+                            BorderThickness="0" Click="Button_Click"/>
+                </Grid>
+
+                <Separator Background="#F0F4F8" Margin="0,0,0,25"/>
+
+                <TextBlock Text="Доступные операции" HorizontalAlignment="Center" Margin="0,0,0,15" FontWeight="Medium"/>
+
+                <Button x:Name="WorkAnalyser" Content="Работать с анализатором" 
+                        Height="60" Width="280"
+                        Background="#0078D7" Foreground="White" 
+                        FontSize="15" FontWeight="SemiBold"
+                        Click="WorkAnalyser_Click" Margin="0,0,0,30"/>
+
+                <Border Background="#F9F9F9" CornerRadius="8" Padding="10">
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
+                        <TextBlock Text="Сессия истекает через: " VerticalAlignment="Center"/>
+                        <TextBlock x:Name="lblTime" Text="02:30:00" FontWeight="Bold" Foreground="#0078D7" Margin="5,0,0,0"/>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

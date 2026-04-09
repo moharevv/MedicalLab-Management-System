@@ -1,0 +1,94 @@
+﻿<Window x:Class="AppLaboratory.Labs.Lab"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:AppLaboratory.Labs"
+        mc:Ignorable="d"
+        Title="Лаборатория — Панель лаборанта" 
+        SizeToContent="WidthAndHeight" MinWidth="550"
+        WindowStartupLocation="CenterScreen"
+        FontFamily="Segoe UI" Background="#F0F4F8" 
+        Loaded="Window_Loaded">
+
+    <Grid>
+        <Border Background="White" CornerRadius="12" Margin="30" Padding="25">
+            <Border.Effect>
+                <DropShadowEffect Color="Gray" BlurRadius="15" Opacity="0.2" ShadowDepth="2"/>
+            </Border.Effect>
+
+            <StackPanel>
+                <Grid Margin="0,0,0,25">
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="Auto"/>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="Auto"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Border Grid.Column="0" Width="60" Height="60" CornerRadius="30" ClipToBounds="True" BorderBrush="#EAEAEA" BorderThickness="1">
+                        <Image Source="laborant_1.jpeg" Stretch="UniformToFill"/>
+                    </Border>
+
+                    <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="15,0,0,0">
+                        <TextBlock x:Name="Name" Text="Имя лаборанта" FontSize="18" FontWeight="SemiBold" Foreground="#333333"/>
+                        <TextBlock Text="Лаборант" FontSize="14"
+                                   FontWeight="Medium"
+
+                                   Foreground="#666666"/>
+                    </StackPanel>
+
+                    <Button Grid.Column="2" Content="Выйти" VerticalAlignment="Top"
+                            Padding="12,5" Background="#6c757d" Foreground="White"
+                            FontWeight="Medium"
+                            FontSize="14"
+                            BorderThickness="0" Cursor="Hand" Click="Button_Click">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="6"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                </Grid>
+
+                <Separator Background="#F0F4F8" Margin="0,0,0,25"/>
+
+                <StackPanel Orientation="Horizontal" HorizontalAlignment="Center" Margin="0,0,0,25">
+                    <TextBlock Text="Оставшееся время: " VerticalAlignment="Center" Foreground="#666666"/>
+                    <TextBlock x:Name="lblTime" Text="02:30:00" FontSize="20" FontWeight="Bold" Foreground="#0078D7"/>
+                </StackPanel>
+
+                <Grid>
+                    <Grid.ColumnDefinitions>
+                        <ColumnDefinition Width="*"/>
+                        <ColumnDefinition Width="*"/>
+                    </Grid.ColumnDefinitions>
+
+                    <Button Grid.Column="0" Content="Принять биоматериал" Height="60" Margin="0,0,10,0"
+                            Background="#0078D7" Foreground="White" FontSize="16" FontWeight="Medium" 
+                            Cursor="Hand" Click="Button_Click_1">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+
+                    <Button Grid.Column="1" 
+                            Content="Сформировать отчёты" 
+                            Height="60" Margin="10,0,0,0"
+                            Background="#F9F9F9" Foreground="#333333" BorderBrush="#EAEAEA" 
+                            BorderThickness="1"
+                            FontSize="16" 
+                            FontWeight="Medium" 
+                            Cursor="Hand">
+                        <Button.Resources>
+                            <Style TargetType="Border">
+                                <Setter Property="CornerRadius" Value="8"/>
+                            </Style>
+                        </Button.Resources>
+                    </Button>
+                </Grid>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>

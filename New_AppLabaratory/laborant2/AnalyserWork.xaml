@@ -1,0 +1,183 @@
+﻿<Window x:Class="AppLaboratory.Labs.Laborant2.AnalyserWork"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:AppLaboratory.Labs.Laborant2"
+        mc:Ignorable="d"
+        Title="Лаборатория — Работа с анализаторами" 
+        Height="650" Width="1000" 
+        Background="#F0F4F8" 
+        FontFamily="Segoe UI" 
+        WindowStartupLocation="CenterScreen"
+        Loaded="Window_Loaded">
+
+    <Grid>
+        <Grid.Resources>
+            <Style x:Key="SectionHeader" TargetType="TextBlock">
+                <Setter Property="FontSize" Value="18"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="Foreground" Value="#333333"/>
+                <Setter Property="Margin" Value="0,0,0,15"/>
+            </Style>
+
+            <Style TargetType="TextBlock">
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="Foreground" Value="#666666"/>
+                <Setter Property="Margin" Value="0,0,0,5"/>
+            </Style>
+
+            <Style x:Key="BaseInput" TargetType="Control">
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="Height" Value="38"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Style.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="6"/>
+                    </Style>
+                </Style.Resources>
+            </Style>
+            <Style TargetType="ComboBox" BasedOn="{StaticResource BaseInput}"/>
+
+            <Style TargetType="Button">
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="FontWeight" Value="Medium"/>
+                <Setter Property="Height" Value="38"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Style.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="6"/>
+                    </Style>
+                </Style.Resources>
+            </Style>
+
+            <Style TargetType="ListView">
+                <Setter Property="BorderBrush" Value="#EAEAEA"/>
+                <Setter Property="FontSize" Value="14"/>
+                <Style.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="8"/>
+                    </Style>
+                </Style.Resources>
+            </Style>
+        </Grid.Resources>
+
+        <Grid Margin="25">
+            <Grid.ColumnDefinitions>
+                <ColumnDefinition Width="2*"/>
+                <ColumnDefinition Width="1.2*"/>
+            </Grid.ColumnDefinitions>
+
+            <StackPanel Grid.Column="0" Margin="0,0,20,0">
+                <TextBlock Text="Работа с анализатором" FontSize="24" FontWeight="SemiBold" Foreground="#333333" Margin="0,0,0,20"/>
+
+                <Border Background="White" CornerRadius="12" Padding="20" Margin="0,0,0,20">
+                    <Border.Effect>
+                        <DropShadowEffect Color="Gray" BlurRadius="10" Opacity="0.1" ShadowDepth="1"/>
+                    </Border.Effect>
+                    <StackPanel>
+                        <TextBlock Text="Анализатор Biorad" Style="{StaticResource SectionHeader}"/>
+
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                <TextBlock Text="Выбор услуги"/>
+                                <ComboBox x:Name="UslugiBioradCombo"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="Действие"/>
+                                <Button Content="Выбрать устройство" Click="Button_Click"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,15">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Button x:Name="Sent_Reserch_Biorad" Grid.Column="0" Content="Исследовать" 
+                                    Background="#0078D7" Foreground="White" FontWeight="SemiBold" 
+                                    Margin="0,0,10,0" Click="Sent_Reserch_Biorad_Click"/>
+                            <Button x:Name="OprosAnalyzerBiorad" Grid.Column="1" Content="Проверка" 
+                                    Click="OprosAnalyzerBiorad_Click"/>
+                        </Grid>
+
+                        <TextBlock Text="Статус: работает анализатор..." HorizontalAlignment="Center" Margin="0,0,0,5"/>
+                        <ProgressBar x:Name="ProgressBiorad" Height="10" Background="#F0F4F8" Foreground="#0078D7" BorderThickness="0">
+                            <ProgressBar.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="5"/>
+                                </Style>
+                            </ProgressBar.Resources>
+                        </ProgressBar>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="White" CornerRadius="12" Padding="20">
+                    <Border.Effect>
+                        <DropShadowEffect Color="Gray" BlurRadius="10" Opacity="0.1" ShadowDepth="1"/>
+                    </Border.Effect>
+                    <StackPanel>
+                        <TextBlock Text="Анализатор Ledetect" Style="{StaticResource SectionHeader}"/>
+
+                        <Grid Margin="0,0,0,10">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0" Margin="0,0,10,0">
+                                <TextBlock Text="Выбор услуги"/>
+                                <ComboBox x:Name="UslugiLedetectCombo"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="1">
+                                <TextBlock Text="Действие"/>
+                                <Button Content="Выбрать устройство" Click="Button_Click_1"/>
+                            </StackPanel>
+                        </Grid>
+
+                        <Grid Margin="0,0,0,15">
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <Button x:Name="Sent_Reserch_Ledetect" Grid.Column="0" Content="Исследовать" 
+                                    Background="#0078D7" Foreground="White" FontWeight="SemiBold" 
+                                    Margin="0,0,10,0" Click="Sent_Reserch_Ledetect_Click"/>
+                            <Button x:Name="OprosAnalyzerLedetect" Grid.Column="1" Content="Проверка" 
+                                    Click="OprosAnalyzerLedetect_Click"/>
+                        </Grid>
+
+                        <TextBlock Text="Статус: работает анализатор..." HorizontalAlignment="Center" Margin="0,0,0,5"/>
+                        <ProgressBar x:Name="ProgressLedetect" Height="10" Background="#F0F4F8" Foreground="#0078D7" BorderThickness="0">
+                            <ProgressBar.Resources>
+                                <Style TargetType="Border">
+                                    <Setter Property="CornerRadius" Value="5"/>
+                                </Style>
+                            </ProgressBar.Resources>
+                        </ProgressBar>
+                    </StackPanel>
+                </Border>
+            </StackPanel>
+
+            <Grid Grid.Column="1">
+                <Grid.RowDefinitions>
+                    <RowDefinition Height="Auto"/>
+                    <RowDefinition Height="*"/>
+                </Grid.RowDefinitions>
+                <TextBlock Grid.Row="0" Text="Невыполненные услуги" FontWeight="SemiBold" Foreground="#333333" Margin="0,10,0,10"/>
+                <ListView x:Name="DontServicesList" Grid.Row="1" Background="White">
+                    <ListView.View>
+                        <GridView>
+                            <GridViewColumn Header="ID Услуги" Width="80" DisplayMemberBinding="{Binding id_Услуги}" />
+                            <GridViewColumn Header="ID Заказа" Width="80" DisplayMemberBinding="{Binding id_Заказа}" />
+                            <GridViewColumn Header="Статус" Width="120" DisplayMemberBinding="{Binding Статус}" />
+                        </GridView>
+                    </ListView.View>
+                </ListView>
+            </Grid>
+        </Grid>
+    </Grid>
+</Window>

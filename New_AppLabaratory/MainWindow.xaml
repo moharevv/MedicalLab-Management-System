@@ -1,0 +1,83 @@
+﻿<Window x:Class="New_AppLabaratory.MainWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Лаборатория - Авторизация" SizeToContent="WidthAndHeight" MinWidth="400"
+        WindowStartupLocation="CenterScreen" ResizeMode="NoResize"
+        FontFamily="Segoe UI" Background="#F0F4F8" Loaded="Window_Loaded">
+
+    <Grid>
+        <Grid.Resources>
+            <Style TargetType="TextBlock">
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="Foreground" Value="#666666"/>
+            </Style>
+
+            <Style x:Key="InputStyle" TargetType="Control">
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="Height" Value="38"/>
+                <Setter Property="VerticalContentAlignment" Value="Center"/>
+                <Setter Property="Padding" Value="10,0"/>
+                <Setter Property="BorderBrush" Value="#EAEAEA"/>
+                <Style.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="6"/>
+                    </Style>
+                </Style.Resources>
+            </Style>
+
+            <Style TargetType="TextBox" BasedOn="{StaticResource InputStyle}"/>
+            <Style TargetType="PasswordBox" BasedOn="{StaticResource InputStyle}"/>
+
+            <Style TargetType="Button">
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="FontWeight" Value="Medium"/>
+                <Setter Property="Height" Value="40"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Style.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="6"/>
+                    </Style>
+                </Style.Resources>
+            </Style>
+        </Grid.Resources>
+
+        <Border Background="White" CornerRadius="12" Margin="30" Padding="25" VerticalAlignment="Center">
+            <Border.Effect>
+                <DropShadowEffect Color="Gray" BlurRadius="15" Opacity="0.2" ShadowDepth="2"/>
+            </Border.Effect>
+
+            <StackPanel>
+                <TextBlock Text="Авторизация" FontSize="24" FontWeight="SemiBold" 
+                           HorizontalAlignment="Center" Margin="0,0,0,20" Foreground="#333333"/>
+
+                <TextBlock Text="Логин" Margin="0,0,0,5" FontWeight="Medium"/>
+                <TextBox x:Name="Login" MaxLength="15" Margin="0,0,0,15"/>
+
+                <TextBlock Text="Пароль" Margin="0,0,0,5" FontWeight="Medium"/>
+                <Grid Margin="0,0,0,10">
+                    <TextBox x:Name="PasswordText" Visibility="Hidden"/>
+                    <PasswordBox x:Name="Password" MaxLength="15"/>
+                </Grid>
+
+                <CheckBox x:Name="CheckPass" Content="Показать пароль" 
+                          Foreground="#555555" Margin="0,0,0,20" 
+                          FontSize="14" Click="CheckPass_Click"/>
+
+                <Border Background="#F9F9F9" BorderBrush="#EAEAEA" BorderThickness="1" 
+                        CornerRadius="8" Padding="15" Margin="0,0,0,25" x:Name="GridCaptcha" Visibility="Collapsed">
+                    <StackPanel>
+                        <TextBlock Text="Пройдите проверку (Капча)" HorizontalAlignment="Center" Margin="0,0,0,10"/>
+                        <Canvas x:Name="CanvasCaptcha" Height="50" Background="#E2E8F0" Margin="0,0,0,10"/>
+                        <TextBox x:Name="captcha" FontSize="16" HorizontalContentAlignment="Center" Margin="0,0,0,10"/>
+                        <Button x:Name="updateCaptcha" Content="Обновить капчу" Height="30" 
+                                Background="#E2E8F0" Click="updateCaptcha_Click"/>
+                    </StackPanel>
+                </Border>
+
+                <Button x:Name="EnterSystem" Content="Войти в систему" 
+                        Height="45" Background="#0078D7" Foreground="White" 
+                        FontWeight="SemiBold" Click="EnterSystem_Click"/>
+            </StackPanel>
+        </Border>
+    </Grid>
+</Window>
