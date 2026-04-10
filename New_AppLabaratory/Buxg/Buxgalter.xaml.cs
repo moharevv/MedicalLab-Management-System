@@ -30,7 +30,7 @@ namespace New_AppLabaratory.Buxg
 
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
-            Name.Content = SQLClass.GetName(Login, type);
+            Name.Text = SQLClass.GetName(Login, type);
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)

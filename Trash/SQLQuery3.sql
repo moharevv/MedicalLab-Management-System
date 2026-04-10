@@ -1,1 +1,0 @@
-select (select Code from services s where s.Analyser = '1'), Y.id_Заказа, Y.Статус from Услуга_В_заказе Y;

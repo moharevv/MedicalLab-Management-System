@@ -49,13 +49,13 @@
                     <Style TargetType="TextBox">
                         <Setter Property="Height" Value="32"/>
                         <Setter Property="FontSize" Value="14"/>
-                        <Setter Property="FontWeight" Value="Medium"/>
+                        <Setter Property="FontWeight" Value="Regular"/>
                         <Setter Property="Margin" Value="0,0,0,10"/>
                         <Setter Property="VerticalContentAlignment" Value="Center"/>
                         <Setter Property="Padding" Value="5,0"/>
                     </Style>
                     <Style TargetType="ComboBox">
-                        <Setter Property="FontWeight" Value="Medium"/>
+                        <Setter Property="FontWeight" Value="Regular"/>
                         <Setter Property="Height" Value="32"/>
                         <Setter Property="Margin" Value="0,0,0,10"/>
                         <Setter Property="FontSize" Value="14"/>
@@ -64,7 +64,7 @@
 
                     <Style TargetType="Button">
                         <Setter Property="FontSize" Value="14"/>
-                        <Setter Property="FontWeight" Value="Medium"/>
+                        <Setter Property="FontWeight" Value="SemiBold"/>
                         <Setter Property="Height" Value="40"/>
                         <Setter Property="Padding" Value="15,0"/>
                         <Setter Property="Cursor" Value="Hand"/>
@@ -104,21 +104,21 @@
                 <ComboBox Grid.Row="7" Grid.Column="1" x:Name="TypePolis"/>
 
                 <Label Grid.Row="8" Content="Страховая компания:"
-                       FontSize="14"/>
+                       FontSize="13"/>
                 <ComboBox Grid.Row="8" Grid.Column="1" x:Name="Company"/>
 
                 <StackPanel Grid.Row="9" Grid.ColumnSpan="2"
-            Orientation="Horizontal"              
-            HorizontalAlignment="Center"
-            Margin="0,20,0,0">
+                            Orientation="Horizontal"              
+                            HorizontalAlignment="Center"
+                            Margin="0,20,0,0">
 
                     <Button x:Name="AddBD"
-            Content="Зарегистрировать"
-            Width="200" Height="40"
-            Background="#0078D7" Foreground="White"
-            FontSize="16" BorderThickness="0"
-            Margin="0,0,15,0" 
-            Cursor="Hand" Click="AddBD_Click">
+                            Content="Зарегистрировать"
+                            Width="200" Height="40"
+                            Background="#0078D7" Foreground="White"
+                            FontSize="16" BorderThickness="0"
+                            Margin="0,0,15,0" 
+                            Cursor="Hand" Click="AddBD_Click">
                         <Button.Resources>
                             <Style TargetType="Border">
                                 <Setter Property="CornerRadius" Value="8"/>

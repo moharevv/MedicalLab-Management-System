@@ -20,7 +20,7 @@
             </Style>
 
             <Style TargetType="Button">
-                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="FontSize" Value="16"/>
                 <Setter Property="FontWeight" Value="Medium"/>
                 <Setter Property="Height" Value="40"/>
                 <Setter Property="Padding" Value="15,0"/>
@@ -64,11 +64,16 @@
 
                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="15,0,0,0">
                         <TextBlock x:Name="Name" Text="Имя Бухгалтера" FontSize="18" FontWeight="SemiBold" Foreground="#333333" Margin="0,0,0,2"/>
-                        <TextBlock Text="Отдел бухгалтерии" Foreground="#888888" FontSize="13"/>
+                        <TextBlock Text="Отдел бухгалтерии" Foreground="#888888" 
+                                   FontWeight="Regular"
+                                   FontSize="14"/>
                     </StackPanel>
 
                     <Button Grid.Column="2" Content="Вернуться" Click="Button_Click" 
-                            Width="110" Height="35" Background="#6c757d" Foreground="White" BorderThickness="0"/>
+                            Width="110" Height="35" Background="#6c757d" 
+                            Foreground="White" 
+                            FontSize="14"
+                            BorderThickness="0"/>
                 </Grid>
 
                 <StackPanel Grid.Row="1" Orientation="Horizontal" Margin="0,0,0,20">
@@ -87,7 +92,7 @@
                         <RowDefinition Height="*"/>
                     </Grid.RowDefinitions>
 
-                    <TextBlock Grid.Row="0" Text="Сформированные отчеты" FontWeight="Medium" Margin="0,0,0,10"/>
+                    <TextBlock Grid.Row="0" Text="Сформированные отчеты" FontWeight="SemiBold" Margin="0,0,0,10"/>
 
                     <Border Grid.Row="1" BorderBrush="#EAEAEA" BorderThickness="1" CornerRadius="8" ClipToBounds="True">
                         <ListView x:Name="ReportsList" Background="Transparent" BorderThickness="0">

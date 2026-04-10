@@ -12,7 +12,29 @@
         Loaded="Window_Loaded">
 
     <Grid>
-        <Border Background="White" CornerRadius="12" Margin="30" Padding="25">
+        <Grid.Resources>
+
+            <Style TargetType="TextBlock">
+                <Setter Property="FontSize" Value="14"/>
+                <Setter Property="FontWeight" Value="Medium"/>
+                <Setter Property="Foreground" Value="#666666"/>
+            </Style>
+
+            <Style TargetType="Button">
+                <Setter Property="FontSize" Value="16"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
+                <Setter Property="Height" Value="40"/>
+                <Setter Property="Cursor" Value="Hand"/>
+                <Style.Resources>
+                    <Style TargetType="Border">
+                        <Setter Property="CornerRadius" Value="6"/>
+                    </Style>
+                </Style.Resources>
+            </Style>
+
+        </Grid.Resources>
+
+            <Border Background="White" CornerRadius="12" Margin="30" Padding="25">
             <Border.Effect>
                 <DropShadowEffect Color="Gray" BlurRadius="15" Opacity="0.2" ShadowDepth="2"/>
             </Border.Effect>
@@ -32,7 +54,7 @@
                     <StackPanel Grid.Column="1" VerticalAlignment="Center" Margin="15,0,0,0">
                         <TextBlock x:Name="Name" Text="Имя лаборанта" FontSize="18" FontWeight="SemiBold" Foreground="#333333"/>
                         <TextBlock Text="Лаборант" FontSize="14"
-                                   FontWeight="Medium"
+                                   FontWeight="Regular"
 
                                    Foreground="#666666"/>
                     </StackPanel>
@@ -63,8 +85,8 @@
                         <ColumnDefinition Width="*"/>
                     </Grid.ColumnDefinitions>
 
-                    <Button Grid.Column="0" Content="Принять биоматериал" Height="60" Margin="0,0,10,0"
-                            Background="#0078D7" Foreground="White" FontSize="16" FontWeight="Medium" 
+                    <Button Grid.Column="0" Content="Принять биоматериал" Height="50" Margin="0,0,10,0"
+                            Background="#0078D7" Foreground="White" FontWeight="Medium" 
                             Cursor="Hand" Click="Button_Click_1">
                         <Button.Resources>
                             <Style TargetType="Border">
@@ -75,11 +97,9 @@
 
                     <Button Grid.Column="1" 
                             Content="Сформировать отчёты" 
-                            Height="60" Margin="10,0,0,0"
+                            Height="50" Margin="10,0,0,0"
                             Background="#F9F9F9" Foreground="#333333" BorderBrush="#EAEAEA" 
                             BorderThickness="1"
-                            FontSize="16" 
-                            FontWeight="Medium" 
                             Cursor="Hand">
                         <Button.Resources>
                             <Style TargetType="Border">

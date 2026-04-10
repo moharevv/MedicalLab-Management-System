@@ -15,12 +15,13 @@
         <Grid.Resources>
             <Style TargetType="TextBlock">
                 <Setter Property="FontSize" Value="14"/>
+                <Setter Property="FontWeight" Value="Regular"/>
                 <Setter Property="Foreground" Value="#666666"/>
             </Style>
 
             <Style TargetType="Button">
-                <Setter Property="FontSize" Value="14"/>
-                <Setter Property="FontWeight" Value="Medium"/>
+                <Setter Property="FontSize" Value="16"/>
+                <Setter Property="FontWeight" Value="SemiBold"/>
                 <Setter Property="Height" Value="40"/>
                 <Setter Property="Padding" Value="15,0"/>
                 <Setter Property="Cursor" Value="Hand"/>
@@ -66,14 +67,16 @@
                 <TextBlock Text="Доступные операции" HorizontalAlignment="Center" Margin="0,0,0,15" FontWeight="Medium"/>
 
                 <Button x:Name="WorkAnalyser" Content="Работать с анализатором" 
-                        Height="60" Width="280"
+                        Height="40" Width="280"
                         Background="#0078D7" Foreground="White" 
                         FontSize="15" FontWeight="SemiBold"
                         Click="WorkAnalyser_Click" Margin="0,0,0,30"/>
 
                 <Border Background="#F9F9F9" CornerRadius="8" Padding="10">
                     <StackPanel Orientation="Horizontal" HorizontalAlignment="Center">
-                        <TextBlock Text="Сессия истекает через: " VerticalAlignment="Center"/>
+                        <TextBlock Text="Сессия истекает через: " 
+                                   FontWeight ="Medium"
+                                   VerticalAlignment="Center"/>
                         <TextBlock x:Name="lblTime" Text="02:30:00" FontWeight="Bold" Foreground="#0078D7" Margin="5,0,0,0"/>
                     </StackPanel>
                 </Border>

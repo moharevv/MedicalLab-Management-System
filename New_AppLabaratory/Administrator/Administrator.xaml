@@ -20,8 +20,6 @@
         </Style>
     </Window.Resources>
     
-    
-
     <Grid>
 
         <Grid.Resources>
@@ -45,7 +43,6 @@
 
             <Style TargetType="Button">
                 <Setter Property="FontSize" Value="14"/>
-                <Setter Property="FontWeight" Value="Medium"/>
                 <Setter Property="Height" Value="40"/>
                 <Setter Property="Padding" Value="15,0"/>
                 <Setter Property="Cursor" Value="Hand"/>
@@ -83,11 +80,16 @@
 
                         <StackPanel VerticalAlignment="Center" Margin="15,0,0,0">
                             <Label x:Name="Name" Content="Имя Пользователя" FontSize="18" FontWeight="SemiBold" Foreground="#333333" Padding="0"/>
-                            <Label Content="Администратор системы" Foreground="#888888" FontSize="14"  Padding="0"/>
+                            <Label Content="Администратор системы" 
+                                   Foreground="#888888" 
+                                   FontWeight="Regular"
+                                   FontSize="14"  Padding="0"/>
                         </StackPanel>
                     </StackPanel>
 
-                    <Button Content="Вернуться" HorizontalAlignment="Right" VerticalAlignment="Top" 
+                    <Button Content="Вернуться" HorizontalAlignment="Right" 
+                            VerticalAlignment="Top" 
+                            FontWeight="Medium"
                             Width="110" Height="32" Background="#6c757d" Foreground="White"
                             BorderThickness="0" Cursor="Hand" Click="Button_Click">
                         <Button.Resources>

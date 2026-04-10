@@ -108,7 +108,7 @@ namespace AppLaboratory.Labs.Laborant.Biomaterial
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
-            WelcomeBio welcome = new WelcomeBio("", false);
+            WelcomeBio welcome = new WelcomeBio("", "", false);
             welcome.Show();
             this.Close();
         }

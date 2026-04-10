@@ -32,16 +32,19 @@ namespace AppLaboratory.Labs
     public partial class WelcomeBio : Window
     {
         
+        
         private bool _isCodeConfirmed = false;
         private System.Windows.Threading.DispatcherTimer _timer;
 
         public string ShtrikhCode { get; set; }
         private bool CodeFromCamera { get; set; }
+        public string Login { get; set; }
 
         private static readonly Random _rnd = new Random();
-        public WelcomeBio(string ShtrikhCode, bool CodeFromCamera)
+        public WelcomeBio(string Login, string ShtrikhCode, bool CodeFromCamera)
         {
             InitializeComponent();
+            this.Login = Login;
             this.ShtrikhCode = ShtrikhCode;
             this.CodeFromCamera = CodeFromCamera;
 
@@ -49,7 +52,6 @@ namespace AppLaboratory.Labs
         }
         private void Window_Loaded(object sender, RoutedEventArgs e) 
         { 
-            /*/MessageBox.Show(DateTime.Now.ToString());*/ 
         }
 
         //Событие для того, чтобы проверка поля КодПробирки происходила после загрузки Окна, а не во время 
@@ -88,86 +90,13 @@ namespace AppLaboratory.Labs
                 };
                 _timer.Start();
 
-                // Устанавливаем фокус на текстовое поле
-                CodeProbirki.Focus();
-
-                if (CodeProbirki.Text.Length == 15)
-                {
-
-                    // проверка на уникальность кода
-                    /*CreatShtrixCode.IsEnabled = false;
-                    GoScanner.IsEnabled = false;
-
-                    if (SQLClass.BarcodeInDB(CodeProbirki.Text) != true)
-                    {
-                        MessageBox.Show("Сканированный код не найден в базе! Записываю...");
-                        SQLClass.WrtieBioBD(CodeProbirki.Text, BioName.Text);//запись в биоматериалы
-                        MessageBox.Show("Успешно!");
-                    }*/
-                }
-                else
-                {
-                    MessageBox.Show("Поле 'Код пробирики' - пустое!");
-                }
-
                 SQLClass.OpenConnection();
-                //BIOCombo.ItemsSource = SQLClass.Select("select Название from Биоматериал", SQLClass.str);
-
                 // загрузка фамилий пациентов и услуг из бд в комбобоксы
                 FIOCombo.ItemsSource = SQLClass.Select("select ФИО from Данные_пациентов", SQLClass.str);
                 ServicesCombo.ItemsSource = SQLClass.Select("select Service from services", SQLClass.str);
                 SQLClass.CloseConnection();
             }
             
-        }
-        private void CreatShtrixCode_Click_1(object sender, RoutedEventArgs e)
-        {
-            if (CodeProbirki.Text.Length == 15)
-            {
-                if (BioName.Text.Length != 0)
-                {
-                    //создание штриха  
-                    string dataDir = System.IO.Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Barcodes");
-
-
-                    // Создайте объект линейного штрих-кода, установите текст кода и тип символики для штрих-кода.
-                    BarcodeGenerator generator = new BarcodeGenerator(EncodeTypes.Code39, CodeProbirki.Text);
-
-                    // Создать поток памяти и сохранить изображение штрих-кода в поток памяти
-                    Stream ms = new MemoryStream();
-                    generator.Save(ms, BarCodeImageFormat.Bmp);
-
-                    // Создайте документ PDF и добавьте страницу в документ
-                    Document doc = new Document();
-                    doc.Pages.Add();
-
-                    // Открыть документ
-                    PdfFileMend mender = new PdfFileMend();
-
-                    // Привяжите PDF, чтобы добавить штрих-код
-                    mender.BindPdf(doc);
-
-                    // Добавить изображение штрих-кода в файл PDF
-                    mender.AddImage(ms, 1, 100, 600, 200, 700);
-
-                    // Сохранить изменения
-                    mender.Save(dataDir + CodeProbirki.Text + ".pdf"); //"barcode.pdf"
-                                                                       //System.IO.File.Move(dataDir + "barcode.pdf", dataDir + CodeProbirki.Text+".pdf");
-                                                                       // Закрыть объект PdfFileMend
-                    mender.Close();
-                    MessageBox.Show("Готово!");
-                    CreatShtrixCode.IsEnabled = false;
-                    GoScanner.IsEnabled = false;
-                }
-                else
-                {
-                    MessageBox.Show("Введите биоматериал!");
-                }
-            }
-            else
-            {
-                MessageBox.Show("Код должен содержать 15 цифр!");
-            }
         }
         private void GoScanner_Click(object sender, RoutedEventArgs e)
         {
@@ -178,7 +107,7 @@ namespace AppLaboratory.Labs
         }
         private void AddOrder_Click(object sender, RoutedEventArgs e)
         {
-            if ((CreatShtrixCode.IsEnabled == false) || (GoScanner.IsEnabled == false))
+            if (GoScanner.IsEnabled == false)
             {
                 if (CodeProbirki.Text.Length == 15)
                 {
@@ -201,7 +130,6 @@ namespace AppLaboratory.Labs
                                 MessageBox.Show(idBio + "- id в био");
                                 SQLClass.InsertInOrder(idBio, idPacient, idService);
                                 MessageBox.Show("Заказ оформлен!");
-                                CreatShtrixCode.IsEnabled = true;
                                 GoScanner.IsEnabled = true;
 
                                 // запись в таблицу "услуги в заказе" для API
@@ -253,6 +181,9 @@ namespace AppLaboratory.Labs
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
+            Lab lab = new Lab(Login, 3);
+            lab.Show();
+            this.Close();
 
         }
 

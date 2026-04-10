@@ -205,7 +205,7 @@ namespace AppLaboratory.Labs.Laborant.Biomaterial
         {
             bool CodeFromCamera = true;
             StopCamera();
-            WelcomeBio biomaterial = new WelcomeBio(Codee, CodeFromCamera);
+            WelcomeBio biomaterial = new WelcomeBio("", Codee, CodeFromCamera);
             biomaterial.Show();
             this.Close();
         }

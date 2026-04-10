@@ -37,21 +37,23 @@
                     </Style>
                     <Style TargetType="TextBox">
                         <Setter Property="Height" Value="35"/>
-                        <Setter Property="FontWeight" Value="Medium"/>
+                        <Setter Property="FontWeight" Value="Regular"/>
+                        <Setter Property="FontSize" Value="16"/>
                         <Setter Property="Padding" Value="8,0"/>
                         <Setter Property="VerticalContentAlignment" Value="Center"/>
                         <Setter Property="Margin" Value="0,0,0,15"/>
                     </Style>
                     <Style TargetType="ComboBox">
                         <Setter Property="Height" Value="35"/>
-                        <Setter Property="FontWeight" Value="Medium"/>
+                        <Setter Property="FontWeight" Value="Regular"/>
+                        <Setter Property="FontSize" Value="16"/>
                         <Setter Property="VerticalContentAlignment" Value="Center"/>
                         <Setter Property="Margin" Value="0,0,0,15"/>
                     </Style>
 
                     <Style TargetType="Button">
                         <Setter Property="FontSize" Value="14"/>
-                        <Setter Property="FontWeight" Value="Medium"/>
+                        <Setter Property="FontWeight" Value="SemiBold"/>
                         <Setter Property="Height" Value="40"/>
                         <Setter Property="Padding" Value="15,0"/>
                         <Setter Property="Cursor" Value="Hand"/>
@@ -92,26 +94,18 @@
                         <TextBox x:Name="CodeProbirki" Margin="0" 
                                  PreviewTextInput="CodeProbirki_PreviewTextInput"
                                  KeyDown="CodeProbirki_KeyDown"
+                                 MaxLength="15"
                                  PreviewLostKeyboardFocus="CodeProbirki_PreviewLostKeyboardFocus"
                                  PreviewMouseDown="CodeProbirki_PreviewMouseDown"/>
                         <TextBlock x:Name="LockIcon" Grid.Column="1" Text="🔓" FontSize="18" 
                                    VerticalAlignment="Center" Margin="10,0,15,0"/>
-                        <Button x:Name="CreatShtrixCode" Grid.Column="2" Content="Создать Ш-Код" 
-                                Width="120" 
-                                Height="35" 
-                                Margin="0,0,10,0" 
-                                Background="#E2E8F0" 
-                                BorderThickness="0" 
-                                FontSize="12"
-                                Click="CreatShtrixCode_Click_1"
-                                />
                         <Button x:Name="GoScanner" 
                                 Grid.Column="3" 
                                 Content="Сканер" 
-                                Width="80" 
+                                Width="180" 
                                 Height="35" 
-                                Background="#E2E8F0"
-                                FontSize="12"
+                                Background="#28a745" Foreground="White"
+                                FontSize="14"
                                 BorderThickness="0" Click="GoScanner_Click"/>
                     </Grid>
                 </StackPanel>
@@ -125,7 +119,8 @@
                     <Grid>
                         <TextBlock Text="Пациент" Style="{StaticResource LabelStyle}" HorizontalAlignment="Left"/>
                         <TextBlock x:Name="AddPacientBD" 
-                                   Text="+ Добавить нового" 
+                                   Text="+ Добавить нового"
+                                   FontWeight="Medium"
                                    HorizontalAlignment="Right" 
                                    Foreground="#0078D7" 
                                    Cursor="Hand" MouseLeftButtonDown="AddPacientBD_MouseLeftButtonDown"/>
@@ -140,7 +135,7 @@
 
                 <Button x:Name="AddOrder" Grid.Row="5" Content="Сформировать заказ" 
                         Height="45" Margin="0,10,0,0" 
-                        Background="#0078D7" Foreground="White" FontSize="16" FontWeight="Bold" 
+                        Background="#0078D7" Foreground="White" FontSize="16" FontWeight="SemiBold" 
                         Cursor="Hand" Click="AddOrder_Click">
                     <Button.Resources>
                         <Style TargetType="Border">

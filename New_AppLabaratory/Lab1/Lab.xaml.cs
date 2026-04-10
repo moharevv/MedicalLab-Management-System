@@ -66,7 +66,7 @@ namespace AppLaboratory.Labs
 
         private void Button_Click_1(object sender, RoutedEventArgs e)
         {
-            WelcomeBio biomaterial = new WelcomeBio("", false);    
+            WelcomeBio biomaterial = new WelcomeBio(login, "", false);    
             biomaterial.Show();
             this.Close();
         }
