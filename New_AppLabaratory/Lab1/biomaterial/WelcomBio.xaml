@@ -6,10 +6,11 @@
         xmlns:local="clr-namespace:AppLaboratory.Labs"
         mc:Ignorable="d"
         Title="Лаборатория — Формирование заказа" 
-        SizeToContent="Height" Width="680" 
+        MinWidth="580" 
         Background="#F0F4F8" 
         FontFamily="Segoe UI"
         WindowStartupLocation="CenterScreen"
+        WindowState="Maximized"
         Loaded="Window_Loaded" ContentRendered="Window_ContentRendered">
 
     <Grid>
@@ -63,7 +64,6 @@
                             </Style>
                         </Style.Resources>
                     </Style>
-
                 </Grid.Resources>
 
                 <Grid Grid.Row="0" Margin="0,0,0,20">
@@ -128,12 +128,66 @@
                     <ComboBox x:Name="FIOCombo"/>
                 </StackPanel>
 
-                <StackPanel Grid.Row="4">
-                    <TextBlock Text="Выберите услуги" Style="{StaticResource LabelStyle}"/>
-                    <ComboBox x:Name="ServicesCombo"/>
+                <StackPanel Grid.Row="4" Margin="0,0,0,10">
+                    <TextBlock Text="Поиск и добавление услуг" Style="{StaticResource LabelStyle}"/>
+
+                    <Grid Margin="0,0,0,10">
+                        <TextBox x:Name="SearchTextBox" 
+                                 TextChanged="SearchTextBox_TextChanged"
+                                 ToolTip="Начните вводить название или код услуги..."/>
+
+                        <Popup x:Name="SuggestionsPopup" IsOpen="False" StaysOpen="False" PlacementTarget="{Binding ElementName=SearchTextBox}">
+                            <Border Background="White" BorderBrush="#CCCCCC" BorderThickness="1" CornerRadius="4" MaxHeight="150" Width="{Binding ActualWidth, ElementName=SearchTextBox}">
+                                <Border.Effect>
+                                    <DropShadowEffect BlurRadius="10" Opacity="0.2" ShadowDepth="2"/>
+                                </Border.Effect>
+                                <ListBox x:Name="SuggestionsList" BorderThickness="0" 
+                                         SelectionChanged="SuggestionsList_SelectionChanged"
+                                         Cursor="Hand" ScrollViewer.HorizontalScrollBarVisibility="Disabled">
+                                    <ListBox.ItemTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Name}" Padding="5,8" FontSize="14"/>
+                                        </DataTemplate>
+                                    </ListBox.ItemTemplate>
+                                </ListBox>
+                            </Border>
+                        </Popup>
+                    </Grid>
+
+                    <ItemsControl x:Name="SelectedChipsControl">
+                        <ItemsControl.ItemsPanel>
+                            <ItemsPanelTemplate>
+                                <WrapPanel Orientation="Horizontal"/>
+                            </ItemsPanelTemplate>
+                        </ItemsControl.ItemsPanel>
+                        <ItemsControl.ItemTemplate>
+                            <DataTemplate>
+                                <Border Background="#E1F0FF" CornerRadius="15" Margin="0,0,8,8" Padding="12,6">
+                                    <StackPanel Orientation="Horizontal">
+                                        <TextBlock Text="{Binding Name}" Foreground="#0078D7" FontWeight="Medium" VerticalAlignment="Center"/>
+                                        <Button Content="✕" Margin="8,0,0,0" Padding="0" Height="20" Width="20"
+                                                Background="Transparent" BorderThickness="0" 
+                                                Foreground="#0078D7" FontWeight="Bold" Cursor="Hand"
+                                                Click="RemoveChip_Click" Tag="{Binding Code}">
+                                            <Button.Template>
+                                                <ControlTemplate TargetType="Button">
+                                                    <TextBlock Text="{TemplateBinding Content}" HorizontalAlignment="Center" VerticalAlignment="Center"/>
+                                                </ControlTemplate>
+                                            </Button.Template>
+                                        </Button>
+                                    </StackPanel>
+                                </Border>
+                            </DataTemplate>
+                        </ItemsControl.ItemTemplate>
+                    </ItemsControl>
+
+                    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Margin="0,5,0,0">
+                        <TextBlock Text="Итого к оплате:" FontSize="16" Foreground="#666666" VerticalAlignment="Center" Margin="0,0,10,0"/>
+                        <TextBlock x:Name="TotalSumText" Text="0 ₽" FontSize="20" FontWeight="Bold" Foreground="#333333"/>
+                    </StackPanel>
                 </StackPanel>
 
-                <Button x:Name="AddOrder" Grid.Row="5" Content="Сформировать заказ" 
+                <Button x:Name="AddOrder" Grid.Row="5" Content="Сформировать заказ и распечатать штрих-код" 
                         Height="45" Margin="0,10,0,0" 
                         Background="#0078D7" Foreground="White" FontSize="16" FontWeight="SemiBold" 
                         Cursor="Hand" Click="AddOrder_Click">

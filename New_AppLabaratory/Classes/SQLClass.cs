@@ -1,4 +1,5 @@
-﻿using System;
+﻿using New_AppLabaratory.Classes;
+using System;
 using System.Collections.Generic;
 using System.Data;
 using System.Data.SqlClient; // обязательная библиотека классов для работы с sql server
@@ -6,6 +7,7 @@ using System.Globalization;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows;
 
 namespace New_AppLabaratory
 {
@@ -17,10 +19,10 @@ namespace New_AppLabaratory
         {
             str = new SqlConnection
             {
-                ConnectionString = // строка подключения к бд
-                // в папке проекта должно быть 2 файла с расширением .mdf и .log
-@"Data Source=(localdb)\MSSQLLocalDB;AttachDbFilename=C:\Users\moh\Desktop\Projects\New_AppLabaratory\BASE_LABORATORY.MDF;Integrated Security=True"
-                //@"Data Source=DESKTOP-HV9HRVA\SQLEXPRESS19;Initial Catalog=FamilyBudget;Integrated Security=True"
+                ConnectionString =
+                        @"Data Source=(LocalDB)\MSSQLLocalDB;
+                        AttachDbFilename=|DataDirectory|\Database\BASE_LABORATORY.mdf;
+                        Integrated Security=True"
             };
             str.Open(); // открытие соединения
         }
@@ -28,6 +30,35 @@ namespace New_AppLabaratory
         public static void CloseConnection() // метод закрытия соединения с бд
         {
             str.Close(); // закрытие соединения
+        }
+
+        public static List<Service> GetServicesList(SqlConnection connection)
+        {
+            List<Service> services = new List<Service>();
+
+            // Твой SQL запрос к таблице с услугами (проверь названия столбцов!)
+            string query = "SELECT Code, Service, Price FROM services";
+
+            using (SqlCommand command = new SqlCommand(query, connection))
+            {
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                    while (reader.Read())
+                    {
+                        // Создаем новый объект услуги и заполняем его данными из текущей строки БД
+                        Service newService = new Service
+                        {
+                            Id = Convert.ToInt32(reader["Code"]),
+                            Name = reader["Service"].ToString(),
+                            Price = Convert.ToDecimal(reader["Price"])
+                        };
+
+                        services.Add(newService);
+                    }
+                } 
+            } 
+
+            return services;
         }
 
         public static List<string> Select(String Text, SqlConnection str) // метод запроса данных из бд
@@ -47,21 +78,16 @@ namespace New_AppLabaratory
 
             return results; // возврат значений метода
         }
-        public class user
-        {
-            public static string login { get; set; }
-            public static string data { get; set; }
-            public static string succes { get; set; }
-        }
 
         public static DataTable ExecuteSql(string sql)
         {
             DataTable dt = new DataTable();
             // строка подключения к бд
             // в папке проекта должно быть 2 файла с расширением .mdf и .log
-            string ConnectionString = @"Data Source=(localdb)\MSSQLLocalDB;
-            AttachDbFilename=C:\Users\moh\Desktop\Projects\New_AppLabaratory\BASE_LABORATORY.MDF;
-            Integrated Security=True";
+            string ConnectionString =
+                @"Data Source=(LocalDB)\MSSQLLocalDB;
+                AttachDbFilename=|DataDirectory|\Database\BASE_LABORATORY.mdf;
+                Integrated Security=True";
 
             SqlConnection conn = new SqlConnection(ConnectionString);
 
@@ -85,11 +111,6 @@ namespace New_AppLabaratory
             SqlCommand command = new SqlCommand(Text, str); // запрос на удаление
             command.ExecuteNonQuery();
             command.Dispose();
-        }
-
-        public static void Update(string codeUslugi)
-        {
-
         }
 
         public static bool Enter(string login, string passwordLog)
@@ -122,24 +143,6 @@ namespace New_AppLabaratory
             SQLClass.CloseConnection();
             return name;
         }
-
-
-        //public static int EnterAdmin(string login, string passwordLog)
-        //{
-        //    int otv = 1;
-        //    var CurrentUser = AppData.db.users.FirstOrDefault(u => u.login == login && u.password == passwordLog && u.type == 1);
-
-        //    if (CurrentUser != null)
-        //    {
-        //        return otv;
-        //    }
-        //    else
-        //    {
-        //        otv = 0;
-        //        return otv;
-        //    }
-
-        //}
         public static int UsersCheckType(string login, string passwordLog)
         {
             SQLClass.OpenConnection();
@@ -153,47 +156,6 @@ namespace New_AppLabaratory
             SQLClass.CloseConnection();
             return type;
         }
-
-        //public static int EnterBuxgalter(string login, string passwordLog)
-        //{
-        //    int otv = 2;
-        //    var CurrentUser = AppData.db.users.FirstOrDefault(u => u.login == login && u.password == passwordLog && u.type == 2);
-        //    if (CurrentUser != null)
-        //    {
-        //        return otv;
-        //    }
-        //    else
-        //    {
-        //        otv = 0;
-        //        return otv;
-        //    }
-        //}
-        //public static int EnterBuxgalter1(string login, string passwordLog)
-        //{
-        //    SQLClass.OpenConnection();
-        //    SqlCommand cmd = new SqlCommand("SELECT type from[dbo].[users] where login = @log and password = @pass", SQLClass.str);
-        //    cmd.Parameters.Add("@log", SqlDbType.VarChar).Value = login;
-        //    cmd.Parameters.Add("@pass", SqlDbType.VarChar).Value = passwordLog;
-        //    SqlDataReader reader = cmd.ExecuteReader();
-        //    reader.Read();
-        //    int type = Convert.ToInt32(reader["type"]);
-        //    SQLClass.CloseConnection();
-        //    return type;
-        //}
-        //public static int EnterLaborant(string login, string passwordLog)
-        //{
-        //    int otv = 3;
-        //    var CurrentUser = AppData.db.users.FirstOrDefault(u => u.login == login && u.password == passwordLog && u.type == 3);
-        //    if (CurrentUser != null)
-        //    {
-        //        return otv;
-        //    }
-        //    else
-        //    {
-        //        otv = 0;
-        //        return otv;
-        //    }
-        //}
         public static void succesSignIn(string login)
         {
             string username = login; // имя пользователя
@@ -223,20 +185,17 @@ namespace New_AppLabaratory
             command.ExecuteNonQuery();
             SQLClass.CloseConnection();
         }
-        public static void InsertInOrder(int biomaterial, int pacient, int service)
+        public static void InsertInOrder(int biomaterial, int pacient)
         {
             DateTime timestamp = DateTime.Now; // дата заказа
-            int services = service; // id услуги(тип услуги)
             string statusOrder = "Выполнено";
-            string statusService = "Ожидание";
             string timeComplete = "30 секунд";
 
             SQLClass.OpenConnection();
-            SqlCommand command = new SqlCommand("INSERT INTO Заказ (Дата_создания, Тип_услуги, Статус_заказа, Статус_услуги_в_заказе, Время_выполнения, id_пациента, id_биоматериала) VALUES (@Дата_создания, @Тип_услуги, @Статус_заказа, @Статус_услуги_в_заказе, @Время_выполнения, @id_пациента, @id_биоматериала)", SQLClass.str);
+            SqlCommand command = new SqlCommand("INSERT INTO Заказ (Дата_создания, Статус_заказа, Время_выполнения, id_пациента, id_биоматериала) " +
+                "VALUES (@Дата_создания, @Статус_заказа, @Время_выполнения, @id_пациента, @id_биоматериала)", SQLClass.str);
             command.Parameters.AddWithValue("@Дата_создания", timestamp);
-            command.Parameters.AddWithValue("@Тип_услуги", service);
             command.Parameters.AddWithValue("@Статус_заказа", statusOrder);
-            command.Parameters.AddWithValue("@Статус_услуги_в_заказе", statusService);
             command.Parameters.AddWithValue("@Время_выполнения", timeComplete);
             command.Parameters.AddWithValue("@id_пациента", pacient);
             command.Parameters.AddWithValue("@id_биоматериала", biomaterial);
@@ -267,7 +226,6 @@ namespace New_AppLabaratory
         public static int GetIdService(string service)
         {
             SQLClass.OpenConnection();
-            //var command = new SqlCommand(Query, Connection);
             SqlCommand cmd = new SqlCommand("SELECT Code from services where Service = @S", SQLClass.str);
             cmd.Parameters.Add("@S", SqlDbType.VarChar).Value = service;
             SqlDataReader reader = cmd.ExecuteReader();
@@ -276,7 +234,7 @@ namespace New_AppLabaratory
             SQLClass.CloseConnection();
             return Code;
         }
-        // запрос на поиск id где он одинаковый в таблицах
+
         public static int GetId(string querry, string value)
         {
             SQLClass.OpenConnection();
@@ -327,30 +285,10 @@ namespace New_AppLabaratory
             }
             catch (Exception)
             {
-
-                //SQLClass.OpenConnection();
-                //SqlCommand command = new SqlCommand("INSERT INTO Биоматериал (Код, Название) VALUES (@code, @bio)", SQLClass.str);
-                //command.Parameters.AddWithValue("@code", codeBio);
-                //command.Parameters.AddWithValue("@bio", nameBio);
-                //command.ExecuteNonQuery();
-                //SQLClass.CloseConnection();
                 throw;
             }
 
         }
-        /*
-        public static string GetCodeProbirki(string BIO)
-        {
-            SQLClass.OpenConnection();
-            SqlCommand cmd = new SqlCommand("SELECT Код from Биоматериал where Название = @BIO", SQLClass.str);
-            cmd.Parameters.Add("@BIO", SqlDbType.VarChar).Value = BIO;
-            SqlDataReader reader = cmd.ExecuteReader();
-            reader.Read();
-            string code = reader["Код"].ToString();
-            SQLClass.CloseConnection();
-            return code;
-        }
-        */
         public static void WrtieBioBD(string code, string biomaterial)
         {
             SQLClass.OpenConnection();
