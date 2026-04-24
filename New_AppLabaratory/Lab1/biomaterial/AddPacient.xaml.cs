@@ -1,26 +1,16 @@
-﻿using New_AppLabaratory;
+using New_AppLabaratory;
 using System;
-using System.Collections.Generic;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+using System.Text.RegularExpressions;
 using System.Windows;
-using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
 
 namespace AppLaboratory.Labs.Laborant.Biomaterial
 {
-    /// <summary>
-    /// Логика взаимодействия для AddPacient.xaml
-    /// </summary>
     public partial class AddPacient : Window
     {
+        private static readonly Regex PhoneRegex = new Regex(@"^\+?\d{11,15}$");
+        private static readonly Regex PassportRegex = new Regex(@"^\d{4}\s?\d{6}$");
+
         public AddPacient()
         {
             InitializeComponent();
@@ -29,88 +19,91 @@ namespace AppLaboratory.Labs.Laborant.Biomaterial
         private void Window_Loaded(object sender, RoutedEventArgs e)
         {
             SQLClass.OpenConnection();
-            TypePolis.ItemsSource = SQLClass.Select("select Тип_страхового_полиса from Тип_страхового_полиса", SQLClass.str);
-            Company.ItemsSource = SQLClass.Select("select Название from Страховые_компании", SQLClass.str);
-            SQLClass.CloseConnection();
+            try
+            {
+                this.TypePolis.ItemsSource = SQLClass.Select("SELECT Тип_страхового_полиса FROM Тип_страхового_полиса", SQLClass.str);
+                this.Company.ItemsSource = SQLClass.Select("SELECT Название FROM Страховые_компании", SQLClass.str);
+            }
+            finally
+            {
+                SQLClass.CloseConnection();
+            }
         }
 
         private void AddBD_Click(object sender, RoutedEventArgs e)
         {
-            if (FIO.Text.Length > 2)
+            string fio = this.FIO.Text.Trim();
+            string birthDateText = this.WasBorn.Text.Trim();
+            string passport = this.Pass.Text.Trim();
+            string phone = this.Phone.Text.Trim();
+            string email = this.Email.Text.Trim();
+            string polis = this.NumPolis.Text.Trim();
+
+            if (fio.Length < 3)
             {
-                if (WasBorn.Text.Length >= 10)
-                {
-                    if (Pass.Text.Length >= 11)
-                    {
-                        if (Phone.Text.Length >= 11)
-                        {
-                            if (Email.Text.Length > 5)
-                            {
-                                if (NumPolis.Text.Length == 16)
-                                {
-                                    if (TypePolis.SelectedItem != null)
-                                    {
-                                        if (Company.SelectedItem != null)
-                                        {
-                                            DateTime dateTime;
-                                            if (DateTime.TryParseExact(WasBorn.Text, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTime))
-                                            {
-                                                int idTypePolis = SQLClass.GetId("select id from Тип_страхового_полиса where Тип_страхового_полиса = @Value", TypePolis.SelectedItem.ToString());
-                                                int idCompany = SQLClass.GetId("SELECT id from Страховые_компании where Название = @Value", Company.SelectedItem.ToString());
-                                                SQLClass.WritePacientBD(FIO.Text, WasBorn.Text, Pass.Text, Phone.Text, Email.Text, NumPolis.Text, idTypePolis, idCompany);
-                                                MessageBox.Show("Вы добавили пациента!");
-                                            }
-                                            else
-                                            {
-                                                MessageBox.Show("Пожвлуйста, введите дату в формате: dd:MM:yy");
-                                            }
-                                        }
-                                        else
-                                        {
-                                            MessageBox.Show("Выберите страховую компанию!");
-                                        }
-                                    }
-                                    else
-                                    {
-                                        MessageBox.Show("Выберите тип полиса!");
-                                    }
-                                }
-                                else
-                                {
-                                    MessageBox.Show("Полис введен некорректно!");
-                                }
-                            }
-                            else
-                            {
-                                MessageBox.Show("Почта введена некорректно!");
-                            }
-                        }
-                        else
-                        {
-                            MessageBox.Show("Номер телефона введен некорректно!");
-                        }
-                    }
-                    else
-                    {
-                        MessageBox.Show("Паспорт введен некорректно!");
-                    }
-                }
-                else
-                {
-                    MessageBox.Show("Дата рождения введена некорректно!");
-                }    
+                MessageBox.Show("Введите полное ФИО.");
+                return;
             }
-            else
+
+            DateTime birthDate;
+            if (!DateTime.TryParseExact(birthDateText, "dd.MM.yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out birthDate))
             {
-                MessageBox.Show("Введите Фио!");
-            }    
+                MessageBox.Show("Введите дату рождения в формате дд.мм.гггг.");
+                return;
+            }
+
+            if (!PassportRegex.IsMatch(passport))
+            {
+                MessageBox.Show("Паспорт должен содержать 10 цифр.");
+                return;
+            }
+
+            if (!PhoneRegex.IsMatch(phone))
+            {
+                MessageBox.Show("Телефон должен содержать от 11 до 15 цифр.");
+                return;
+            }
+
+            if (!email.Contains("@") || email.Length < 6)
+            {
+                MessageBox.Show("Почта введена некорректно.");
+                return;
+            }
+
+            if (polis.Length != 16)
+            {
+                MessageBox.Show("Полис должен содержать 16 символов.");
+                return;
+            }
+
+            if (this.TypePolis.SelectedItem == null)
+            {
+                MessageBox.Show("Выберите тип полиса.");
+                return;
+            }
+
+            if (this.Company.SelectedItem == null)
+            {
+                MessageBox.Show("Выберите страховую компанию.");
+                return;
+            }
+
+            int idTypePolis = SQLClass.GetId(
+                "SELECT id FROM Тип_страхового_полиса WHERE Тип_страхового_полиса = @Value",
+                this.TypePolis.SelectedItem.ToString());
+            int idCompany = SQLClass.GetId(
+                "SELECT id FROM Страховые_компании WHERE Название = @Value",
+                this.Company.SelectedItem.ToString());
+
+            SQLClass.WritePacientBD(fio, birthDateText, passport, phone, email, polis, idTypePolis, idCompany);
+            MessageBox.Show("Пациент добавлен.");
         }
 
         private void Button_Click(object sender, RoutedEventArgs e)
         {
             WelcomeBio welcome = new WelcomeBio("", "", false);
             welcome.Show();
-            this.Close();
+            Close();
         }
     }
 }

@@ -69,7 +69,7 @@ namespace AppLaboratory
 
         private void WorkAnalyser_Click(object sender, RoutedEventArgs e)
         {
-            AnalyserWork analyserWindow = new AnalyserWork();
+            AnalyserWork analyserWindow = new AnalyserWork(login, type);
             analyserWindow.Show();
             Close();
         }

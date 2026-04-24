@@ -194,6 +194,7 @@
       <DependentUpon>Buxgalter.xaml</DependentUpon>
     </Compile>
     <Compile Include="Classes\CaptchaClass.cs" />
+    <Compile Include="Classes\GetAnalizator.cs" />
     <Compile Include="Classes\Service.cs" />
     <Compile Include="Classes\SQLClass.cs" />
     <Page Include="Administrator\Administrator.xaml">

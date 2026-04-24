@@ -1,322 +1,424 @@
-﻿using New_AppLabaratory.Classes;
+using New_AppLabaratory.Classes;
 using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Data.SqlClient; // обязательная библиотека классов для работы с sql server
+using System.Data.SqlClient;
 using System.Globalization;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using System.Windows;
 
 namespace New_AppLabaratory
 {
     internal class SQLClass
     {
-        public static SqlConnection str; // перменная для подключения 
+        private const string ConnectionString =
+            @"Data Source=(LocalDB)\MSSQLLocalDB;
+            AttachDbFilename=|DataDirectory|\Database\BASE_LABORATORY.mdf;
+            Integrated Security=True";
 
-        public static void OpenConnection() // метод подключения к базе данных
+        public static SqlConnection str;
+
+        public static void OpenConnection()
         {
-            str = new SqlConnection
+            if (str != null && str.State == ConnectionState.Open)
             {
-                ConnectionString =
-                        @"Data Source=(LocalDB)\MSSQLLocalDB;
-                        AttachDbFilename=|DataDirectory|\Database\BASE_LABORATORY.mdf;
-                        Integrated Security=True"
-            };
-            str.Open(); // открытие соединения
+                return;
+            }
+
+            CloseConnection();
+            str = new SqlConnection(ConnectionString);
+            str.Open();
         }
 
-        public static void CloseConnection() // метод закрытия соединения с бд
+        public static void CloseConnection()
         {
-            str.Close(); // закрытие соединения
+            if (str == null)
+            {
+                return;
+            }
+
+            if (str.State != ConnectionState.Closed)
+            {
+                str.Close();
+            }
+
+            str.Dispose();
+            str = null;
+        }
+
+        private static SqlConnection CreateConnection()
+        {
+            return new SqlConnection(ConnectionString);
+        }
+
+        private static SqlConnection GetConnection(out bool shouldDispose)
+        {
+            if (str != null && str.State == ConnectionState.Open)
+            {
+                shouldDispose = false;
+                return str;
+            }
+
+            SqlConnection connection = CreateConnection();
+            connection.Open();
+            shouldDispose = true;
+            return connection;
+        }
+
+        private static void DisposeConnection(SqlConnection connection, bool shouldDispose)
+        {
+            if (shouldDispose && connection != null)
+            {
+                connection.Dispose();
+            }
         }
 
         public static List<Service> GetServicesList(SqlConnection connection)
         {
             List<Service> services = new List<Service>();
-
-            // Твой SQL запрос к таблице с услугами (проверь названия столбцов!)
             string query = "SELECT Code, Service, Price FROM services";
 
             using (SqlCommand command = new SqlCommand(query, connection))
+            using (SqlDataReader reader = command.ExecuteReader())
             {
-                using (SqlDataReader reader = command.ExecuteReader())
+                while (reader.Read())
                 {
-                    while (reader.Read())
+                    services.Add(new Service
                     {
-                        // Создаем новый объект услуги и заполняем его данными из текущей строки БД
-                        Service newService = new Service
-                        {
-                            Id = Convert.ToInt32(reader["Code"]),
-                            Name = reader["Service"].ToString(),
-                            Price = Convert.ToDecimal(reader["Price"])
-                        };
-
-                        services.Add(newService);
-                    }
-                } 
-            } 
+                        Id = Convert.ToInt32(reader["Code"]),
+                        Name = reader["Service"].ToString(),
+                        Price = Convert.ToDecimal(reader["Price"])
+                    });
+                }
+            }
 
             return services;
         }
 
-        public static List<string> Select(String Text, SqlConnection str) // метод запроса данных из бд
+        public static List<string> Select(string text, SqlConnection connection)
         {
-            List<string> results = new List<string>(); // объявление массива где будут хранится данные возвращаемые sql запросом 
-            SqlCommand command = new SqlCommand(Text, str); // запись sql команды
+            List<string> results = new List<string>();
 
-            SqlDataReader reader = command.ExecuteReader(); // объявление readera для учета данных получаемых из бд
-
-            while (reader.Read()) // запуск цикла среди всех значений полученных запросом из бд
+            using (SqlCommand command = new SqlCommand(text, connection))
+            using (SqlDataReader reader = command.ExecuteReader())
             {
-                for (int i = 0; i < reader.FieldCount; i++) // запуск цикла для присвоения значений в массив данных
-                    results.Add(reader.GetValue(i).ToString());
+                while (reader.Read())
+                {
+                    for (int i = 0; i < reader.FieldCount; i++)
+                    {
+                        results.Add(reader.GetValue(i).ToString());
+                    }
+                }
             }
-            reader.Close(); // закрытие readrea 
-            command.Dispose();
 
-            return results; // возврат значений метода
+            return results;
         }
 
         public static DataTable ExecuteSql(string sql)
         {
             DataTable dt = new DataTable();
-            // строка подключения к бд
-            // в папке проекта должно быть 2 файла с расширением .mdf и .log
-            string ConnectionString =
-                @"Data Source=(LocalDB)\MSSQLLocalDB;
-                AttachDbFilename=|DataDirectory|\Database\BASE_LABORATORY.mdf;
-                Integrated Security=True";
 
-            SqlConnection conn = new SqlConnection(ConnectionString);
-
-            using (conn)
+            using (SqlConnection connection = CreateConnection())
+            using (SqlCommand command = new SqlCommand(sql, connection))
             {
-                conn.Open();
+                connection.Open();
 
-                SqlCommand cmd = new SqlCommand(sql, conn);
-                SqlDataReader read = cmd.ExecuteReader();
-
-                using (read)
+                using (SqlDataReader reader = command.ExecuteReader())
                 {
-                    dt.Load(read);
+                    dt.Load(reader);
                 }
             }
+
             return dt;
         }
 
-        public static void Delete(String Text) // метод для удаления строки из бд
+        public static int ExecuteNonQuery(string sql, params SqlParameter[] parameters)
         {
-            SqlCommand command = new SqlCommand(Text, str); // запрос на удаление
-            command.ExecuteNonQuery();
-            command.Dispose();
+            bool shouldDispose;
+            SqlConnection connection = GetConnection(out shouldDispose);
+
+            try
+            {
+                using (SqlCommand command = new SqlCommand(sql, connection))
+                {
+                    if (parameters != null && parameters.Length > 0)
+                    {
+                        command.Parameters.AddRange(parameters);
+                    }
+
+                    return command.ExecuteNonQuery();
+                }
+            }
+            finally
+            {
+                DisposeConnection(connection, shouldDispose);
+            }
+        }
+
+        public static void Delete(string text)
+        {
+            ExecuteNonQuery(text);
+        }
+
+        public static bool TryAuthenticateUser(string login, string passwordLog, out int userType)
+        {
+            userType = 0;
+
+            using (SqlConnection connection = CreateConnection())
+            using (SqlCommand command = new SqlCommand(
+                "SELECT type FROM [dbo].[users] WHERE login = @login AND password = @password",
+                connection))
+            {
+                connection.Open();
+                command.Parameters.Add("@login", SqlDbType.VarChar).Value = login;
+                command.Parameters.Add("@password", SqlDbType.VarChar).Value = passwordLog;
+
+                object result = command.ExecuteScalar();
+                if (result == null || result == DBNull.Value)
+                {
+                    return false;
+                }
+
+                userType = Convert.ToInt32(result);
+                return true;
+            }
         }
 
         public static bool Enter(string login, string passwordLog)
         {
-            SQLClass.OpenConnection();
-            SqlCommand command = new SqlCommand("SELECT COUNT(*) from [dbo].[users] where login = @uL AND password = @uP", SQLClass.str);
-            command.Parameters.Add("@uL", SqlDbType.VarChar).Value = login;
-            command.Parameters.Add("@uP", SqlDbType.VarChar).Value = passwordLog;
-            var result = command.ExecuteScalar() as int?;
-            SQLClass.CloseConnection();
-            return result == 1;
+            int userType;
+            return TryAuthenticateUser(login, passwordLog, out userType);
         }
+
         public static int GetLastOrderId()
         {
-            SQLClass.OpenConnection();
-            SqlCommand command = new SqlCommand("select MAX(\"id\") from Заказ", SQLClass.str);
-            int lastid = (int)command.ExecuteScalar();
-            return lastid;
+            using (SqlConnection connection = CreateConnection())
+            using (SqlCommand command = new SqlCommand("SELECT ISNULL(MAX([id]), 0) FROM Заказ", connection))
+            {
+                connection.Open();
+                return Convert.ToInt32(command.ExecuteScalar());
+            }
         }
+
         public static string GetName(string login, int type)
         {
-            SQLClass.OpenConnection();
-            //var command = new SqlCommand(Query, Connection);
-            SqlCommand cmd = new SqlCommand("SELECT name from[dbo].[users] where login = @uL and type = @type", SQLClass.str);
-            cmd.Parameters.Add("@uL", SqlDbType.VarChar).Value = login;
-            cmd.Parameters.Add("@type", SqlDbType.VarChar).Value = type;
-            SqlDataReader reader = cmd.ExecuteReader();
-            reader.Read();
-            string name = reader["name"].ToString();
-            SQLClass.CloseConnection();
-            return name;
+            using (SqlConnection connection = CreateConnection())
+            using (SqlCommand command = new SqlCommand(
+                "SELECT name FROM [dbo].[users] WHERE login = @login AND type = @type",
+                connection))
+            {
+                connection.Open();
+                command.Parameters.Add("@login", SqlDbType.VarChar).Value = login;
+                command.Parameters.Add("@type", SqlDbType.Int).Value = type;
+
+                object result = command.ExecuteScalar();
+                return result == null || result == DBNull.Value ? string.Empty : result.ToString();
+            }
         }
+
         public static int UsersCheckType(string login, string passwordLog)
         {
-            SQLClass.OpenConnection();
-            //var command = new SqlCommand(Query, Connection);
-            SqlCommand cmd = new SqlCommand("SELECT type from[dbo].[users] where login = @log and password = @pass", SQLClass.str);
-            cmd.Parameters.Add("@log", SqlDbType.VarChar).Value = login;
-            cmd.Parameters.Add("@pass", SqlDbType.VarChar).Value = passwordLog;
-            SqlDataReader reader = cmd.ExecuteReader();
-            reader.Read();
-            int type = Convert.ToInt32(reader["type"]);
-            SQLClass.CloseConnection();
-            return type;
+            int userType;
+            return TryAuthenticateUser(login, passwordLog, out userType) ? userType : 0;
         }
+
         public static void succesSignIn(string login)
         {
-            string username = login; // имя пользователя
-            DateTime timestamp = DateTime.Now; // текущее время
-            string success = "Успешно"; // успешность авторизации
-
-            SQLClass.OpenConnection();
-            SqlCommand command = new SqlCommand("INSERT INTO AuthHistory (Username, Date, EnterSucces) VALUES (@Username, @Timestamp, @Success)", SQLClass.str);
-            command.Parameters.AddWithValue("@Username", username);
-            command.Parameters.AddWithValue("@Timestamp", timestamp);
-            command.Parameters.AddWithValue("@Success", success);
-            command.ExecuteNonQuery();
-            SQLClass.CloseConnection();
-
+            ExecuteNonQuery(
+                "INSERT INTO AuthHistory (Username, Date, EnterSucces) VALUES (@Username, @Timestamp, @Success)",
+                new SqlParameter("@Username", login),
+                new SqlParameter("@Timestamp", DateTime.Now),
+                new SqlParameter("@Success", "Успешно"));
         }
+
         public static void errorSignIn(string login)
         {
-            string username = login; // имя пользователя
-            DateTime timestamp = DateTime.Now; // текущее время
-            string success = "Неуспешно"; // успешность авторизации
-
-            SQLClass.OpenConnection();
-            SqlCommand command = new SqlCommand("INSERT INTO AuthHistory (UserName, Date, EnterSucces) VALUES (@Username, @Timestamp, @Success)", SQLClass.str);
-            command.Parameters.AddWithValue("@Username", username);
-            command.Parameters.AddWithValue("@Timestamp", timestamp);
-            command.Parameters.AddWithValue("@Success", success);
-            command.ExecuteNonQuery();
-            SQLClass.CloseConnection();
+            ExecuteNonQuery(
+                "INSERT INTO AuthHistory (UserName, Date, EnterSucces) VALUES (@Username, @Timestamp, @Success)",
+                new SqlParameter("@Username", login),
+                new SqlParameter("@Timestamp", DateTime.Now),
+                new SqlParameter("@Success", "Неуспешно"));
         }
+
         public static void InsertInOrder(int biomaterial, int pacient)
         {
-            DateTime timestamp = DateTime.Now; // дата заказа
-            string statusOrder = "Выполнено";
-            string timeComplete = "30 секунд";
-
-            SQLClass.OpenConnection();
-            SqlCommand command = new SqlCommand("INSERT INTO Заказ (Дата_создания, Статус_заказа, Время_выполнения, id_пациента, id_биоматериала) " +
-                "VALUES (@Дата_создания, @Статус_заказа, @Время_выполнения, @id_пациента, @id_биоматериала)", SQLClass.str);
-            command.Parameters.AddWithValue("@Дата_создания", timestamp);
-            command.Parameters.AddWithValue("@Статус_заказа", statusOrder);
-            command.Parameters.AddWithValue("@Время_выполнения", timeComplete);
-            command.Parameters.AddWithValue("@id_пациента", pacient);
-            command.Parameters.AddWithValue("@id_биоматериала", biomaterial);
-            command.ExecuteNonQuery();
-            SQLClass.CloseConnection();
+            ExecuteNonQuery(
+                "INSERT INTO Заказ (Дата_создания, Статус_заказа, Время_выполнения, id_пациента, id_биоматериала) " +
+                "VALUES (@Дата_создания, @Статус_заказа, @Время_выполнения, @id_пациента, @id_биоматериала)",
+                new SqlParameter("@Дата_создания", DateTime.Now),
+                new SqlParameter("@Статус_заказа", "Создано"),
+                new SqlParameter("@Время_выполнения", "30 секунд"),
+                new SqlParameter("@id_пациента", pacient),
+                new SqlParameter("@id_биоматериала", biomaterial));
         }
+
         public static void InsertServicesInOrder(int id_service, int id_order)
         {
-            SQLClass.OpenConnection();
-            SqlCommand command = new SqlCommand("INSERT INTO Услуга_В_заказе (id_Услуги, id_Заказа, Статус) VALUES (@Id_Service, @Id_Order, @Status)", SQLClass.str);
-            command.Parameters.AddWithValue("@Id_Service", id_service);
-            command.Parameters.AddWithValue("@Id_Order", id_order);
-            command.Parameters.AddWithValue("@Status", "Ожидание");
-            command.ExecuteNonQuery();
-            SQLClass.CloseConnection();
+            ExecuteNonQuery(
+                "INSERT INTO Услуга_В_заказе (id_Услуги, id_Заказа, Статус) VALUES (@Id_Service, @Id_Order, @Status)",
+                new SqlParameter("@Id_Service", id_service),
+                new SqlParameter("@Id_Order", id_order),
+                new SqlParameter("@Status", "Ожидание"));
         }
 
         public static bool BarcodeInDB(string barcode)
         {
-            SQLClass.OpenConnection();
-            SqlCommand command = new SqlCommand("SELECT COUNT(*) from Биоматериал where Код = @barcode", SQLClass.str);
-            command.Parameters.Add("@barcode", SqlDbType.VarChar).Value = barcode;
-            var result = command.ExecuteScalar() as int?;
-            SQLClass.CloseConnection();
-            return result == 1;
+            using (SqlConnection connection = CreateConnection())
+            using (SqlCommand command = new SqlCommand("SELECT COUNT(*) FROM Биоматериал WHERE Код = @barcode", connection))
+            {
+                connection.Open();
+                command.Parameters.Add("@barcode", SqlDbType.VarChar).Value = barcode;
+                return Convert.ToInt32(command.ExecuteScalar()) == 1;
+            }
         }
 
         public static int GetIdService(string service)
         {
-            SQLClass.OpenConnection();
-            SqlCommand cmd = new SqlCommand("SELECT Code from services where Service = @S", SQLClass.str);
-            cmd.Parameters.Add("@S", SqlDbType.VarChar).Value = service;
-            SqlDataReader reader = cmd.ExecuteReader();
-            reader.Read();
-            int Code = Convert.ToInt32(reader["Code"]);
-            SQLClass.CloseConnection();
-            return Code;
+            using (SqlConnection connection = CreateConnection())
+            using (SqlCommand command = new SqlCommand("SELECT Code FROM services WHERE Service = @service", connection))
+            {
+                connection.Open();
+                command.Parameters.Add("@service", SqlDbType.VarChar).Value = service;
+                object result = command.ExecuteScalar();
+                return result == null || result == DBNull.Value ? 0 : Convert.ToInt32(result);
+            }
         }
 
         public static int GetId(string querry, string value)
         {
-            SQLClass.OpenConnection();
-            SqlCommand cmd = new SqlCommand(querry, SQLClass.str);
-            cmd.Parameters.Add("@Value", SqlDbType.VarChar).Value = value;
-            SqlDataReader reader = cmd.ExecuteReader();
-            reader.Read();
-            int id = Convert.ToInt32(reader["id"]);
-            SQLClass.CloseConnection();
-            return id;
+            using (SqlConnection connection = CreateConnection())
+            using (SqlCommand command = new SqlCommand(querry, connection))
+            {
+                connection.Open();
+                command.Parameters.Add("@Value", SqlDbType.VarChar).Value = value;
+
+                using (SqlDataReader reader = command.ExecuteReader())
+                {
+                    if (!reader.Read())
+                    {
+                        return 0;
+                    }
+
+                    return Convert.ToInt32(reader["id"]);
+                }
+            }
         }
 
-        public static int GetIdPIZDEC(string service)
+        public static int GetPatientIdForPendingAnalyzerService(string service)
         {
-            SQLClass.OpenConnection();
-            SqlCommand cmd = new SqlCommand("select id_пациента\r\nfrom Заказ\r\ninner join Услуга_В_заказе U\r\non Заказ.id = U.id_Заказа\r\ninner join services\r\non services.Code = U.id_Услуги where services.Service = @service and U.Статус = 'Ожидание' and Analyser = '1' or Analyser = '1;2';", SQLClass.str);
-            cmd.Parameters.Add("@service", SqlDbType.VarChar).Value = service;
-            SqlDataReader reader = cmd.ExecuteReader();
-            reader.Read();
-            int id = Convert.ToInt32(reader["id_пациента"]);
-            SQLClass.CloseConnection();
-            return id;
+            using (SqlConnection connection = CreateConnection())
+            using (SqlCommand command = new SqlCommand(
+                "SELECT TOP 1 Заказ.id_пациента " +
+                "FROM Заказ " +
+                "INNER JOIN Услуга_В_заказе U ON Заказ.id = U.id_Заказа " +
+                "INNER JOIN services ON services.Code = U.id_Услуги " +
+                "WHERE services.Service = @service " +
+                "AND U.Статус = N'Ожидание' " +
+                "AND (Analyser = '1' OR Analyser = '1;2');",
+                connection))
+            {
+                connection.Open();
+                command.Parameters.Add("@service", SqlDbType.VarChar).Value = service;
+                object result = command.ExecuteScalar();
+                return result == null || result == DBNull.Value ? 0 : Convert.ToInt32(result);
+            }
         }
 
-        public static int GetIdPacient(string FIO)
+        public static int GetIdPacient(string fio)
         {
-            SQLClass.OpenConnection();
-            SqlCommand cmd = new SqlCommand("SELECT id from Данные_пациентов where ФИО = @FIO", SQLClass.str);
-            cmd.Parameters.Add("@FIO", SqlDbType.VarChar).Value = FIO;
-            SqlDataReader reader = cmd.ExecuteReader();
-            reader.Read();
-            int id = Convert.ToInt32(reader["id"]);
-            SQLClass.CloseConnection();
-            return id;
+            using (SqlConnection connection = CreateConnection())
+            using (SqlCommand command = new SqlCommand("SELECT id FROM Данные_пациентов WHERE ФИО = @fio", connection))
+            {
+                connection.Open();
+                command.Parameters.Add("@fio", SqlDbType.VarChar).Value = fio;
+                object result = command.ExecuteScalar();
+                return result == null || result == DBNull.Value ? 0 : Convert.ToInt32(result);
+            }
         }
+
         public static int GetIdBIO(string codeBio, string nameBio)
         {
-            try
+            using (SqlConnection connection = CreateConnection())
+            using (SqlCommand command = new SqlCommand("SELECT id FROM Биоматериал WHERE Код = @bioCode", connection))
             {
-                SQLClass.OpenConnection();
-                SqlCommand cmd = new SqlCommand("SELECT id from Биоматериал where Код = @BIO", SQLClass.str);
-                cmd.Parameters.Add("@BIO", SqlDbType.VarChar).Value = codeBio;
-                SqlDataReader reader = cmd.ExecuteReader();
-                reader.Read();
-                int id = Convert.ToInt32(reader["id"]);
-                SQLClass.CloseConnection();
-                return id;
+                connection.Open();
+                command.Parameters.Add("@bioCode", SqlDbType.VarChar).Value = codeBio;
+                object result = command.ExecuteScalar();
+                return result == null || result == DBNull.Value ? 0 : Convert.ToInt32(result);
             }
-            catch (Exception)
-            {
-                throw;
-            }
-
         }
+
+        public static void WriteBiomaterial(string code, string biomaterial)
+        {
+            ExecuteNonQuery(
+                "INSERT INTO Биоматериал (Код, Название) VALUES (@code, @bio)",
+                new SqlParameter("@code", code),
+                new SqlParameter("@bio", biomaterial));
+        }
+
         public static void WrtieBioBD(string code, string biomaterial)
         {
-            SQLClass.OpenConnection();
-            SqlCommand command = new SqlCommand("INSERT INTO Биоматериал (Код, Название) VALUES (@code, @bio)", SQLClass.str);
-            command.Parameters.AddWithValue("@code", code);
-            command.Parameters.AddWithValue("@bio", biomaterial);
-            command.ExecuteNonQuery();
-            SQLClass.CloseConnection();
+            WriteBiomaterial(code, biomaterial);
         }
-        public static void WritePacientBD(string Name, string born, string passport, string phone, string email, string polis, int typePolis, int company)
+
+        public static void WritePacientBD(string name, string born, string passport, string phone, string email, string polis, int typePolis, int company)
         {
-            SQLClass.OpenConnection();
-            string login = "login1";
-            string password = "pass1";
             DateTime birthdate = DateTime.ParseExact(born, "dd.MM.yyyy", CultureInfo.InvariantCulture);
-            SqlCommand command = new SqlCommand("insert into Данные_пациентов (Логин, Пароль, ФИО, Дата_рождения, Серия_и_номер_паспорта, Телефон, Email, Номер_полиса, Тип_полиса, Страховая_компания) values (@login, @password, @Name, @birthdate, @passport, @phone, @email, @numPolis, @typePolis, @company)", SQLClass.str);
-            command.Parameters.AddWithValue("@login", login);
-            command.Parameters.AddWithValue("@password", password);
-            command.Parameters.AddWithValue("@Name", Name);
-            command.Parameters.AddWithValue("@birthdate", birthdate);
-            command.Parameters.AddWithValue("@passport", passport);
-            command.Parameters.AddWithValue("@phone", phone);
-            command.Parameters.AddWithValue("@email", email);
-            command.Parameters.AddWithValue("@numPolis", polis);
-            command.Parameters.AddWithValue("@typePolis", typePolis);
-            command.Parameters.AddWithValue("@company", company);
-            command.ExecuteNonQuery();
-            SQLClass.CloseConnection();
+            string generatedLogin = "patient_" + Guid.NewGuid().ToString("N").Substring(0, 8);
+            string generatedPassword = Guid.NewGuid().ToString("N").Substring(0, 10);
+
+            ExecuteNonQuery(
+                "INSERT INTO Данные_пациентов (Логин, Пароль, ФИО, Дата_рождения, Серия_и_номер_паспорта, Телефон, Email, Номер_полиса, Тип_полиса, Страховая_компания) " +
+                "VALUES (@login, @password, @Name, @birthdate, @passport, @phone, @email, @numPolis, @typePolis, @company)",
+                new SqlParameter("@login", generatedLogin),
+                new SqlParameter("@password", generatedPassword),
+                new SqlParameter("@Name", name),
+                new SqlParameter("@birthdate", birthdate),
+                new SqlParameter("@passport", passport),
+                new SqlParameter("@phone", phone),
+                new SqlParameter("@email", email),
+                new SqlParameter("@numPolis", polis),
+                new SqlParameter("@typePolis", typePolis),
+                new SqlParameter("@company", company));
+        }
+
+        public static void UpdateServiceStatus(int orderId, int serviceCode, string newStatus)
+        {
+            ExecuteNonQuery(
+                "UPDATE Услуга_В_заказе SET Статус = @status WHERE id_Заказа = @orderId AND id_Услуги = @serviceCode",
+                new SqlParameter("@status", newStatus),
+                new SqlParameter("@orderId", orderId),
+                new SqlParameter("@serviceCode", serviceCode));
+        }
+
+        public static void RejectServiceAndClearResult(int orderId, int serviceCode, string newStatus)
+        {
+            ExecuteNonQuery(
+                "UPDATE Услуга_В_заказе SET Статус = @status, Result = NULL WHERE id_Заказа = @orderId AND id_Услуги = @serviceCode",
+                new SqlParameter("@status", newStatus),
+                new SqlParameter("@orderId", orderId),
+                new SqlParameter("@serviceCode", serviceCode));
+        }
+
+        public static double GetAverageResult(int serviceCode)
+        {
+            using (SqlConnection connection = CreateConnection())
+            using (SqlCommand command = new SqlCommand(
+                "SELECT AVG(CAST(Result AS float)) FROM Услуга_В_заказе WHERE id_Услуги = @serviceCode AND Статус = N'Выполнена'",
+                connection))
+            {
+                connection.Open();
+                command.Parameters.Add("@serviceCode", SqlDbType.Int).Value = serviceCode;
+                object result = command.ExecuteScalar();
+                return result == null || result == DBNull.Value ? 0 : Convert.ToDouble(result);
+            }
+        }
+
+        public static void SaveServiceResult(int orderId, int serviceCode, string resultValue)
+        {
+            ExecuteNonQuery(
+                "UPDATE Услуга_В_заказе SET Result = @res WHERE id_Заказа = @oid AND id_Услуги = @sid",
+                new SqlParameter("@res", resultValue),
+                new SqlParameter("@oid", orderId),
+                new SqlParameter("@sid", serviceCode));
         }
     }
 }

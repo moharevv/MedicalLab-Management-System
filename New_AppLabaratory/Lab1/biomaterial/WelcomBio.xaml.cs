@@ -393,15 +393,18 @@ namespace AppLaboratory.Labs
         // 3. Удаление услуги (клик по крестику на чипсе)
         private void RemoveChip_Click(object sender, RoutedEventArgs e)
         {
-            if (sender is Button btn && btn.Tag != null)
+            // 1. Получаем кнопку
+            if (sender is Button btn)
             {
-                // Берем код услуги из Tag кнопки
-                int code = int.Parse(btn.Tag.ToString());
-                var serviceToRemove = SelectedServices.FirstOrDefault(s => s.Id == code);
+                // 2. В WPF DataContext кнопки внутри шаблона — это и есть наш объект Service
+                var serviceToRemove = btn.DataContext as Service;
 
                 if (serviceToRemove != null)
                 {
+                    // 3. Удаляем сам объект. ObservableCollection сама обновит UI.
                     SelectedServices.Remove(serviceToRemove);
+
+                    // 4. Обновляем сумму
                     UpdateTotalSum();
                 }
             }

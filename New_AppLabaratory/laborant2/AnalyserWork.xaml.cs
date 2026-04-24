@@ -1,388 +1,510 @@
-﻿using Nancy.Json;
-using New_AppLabaratory;
-using System;
-using System.Collections.Generic;
-using System.Data;
-using System.IO;
+﻿using System;
+using System.Collections.ObjectModel;
 using System.Linq;
-using System.Net;
+using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
-using System.Timers;
 using System.Windows;
+using System.Web.Script.Serialization;
+using New_AppLabaratory.Classes;
+using New_AppLabaratory;
+using System.ComponentModel;
 using System.Windows.Controls;
-using System.Windows.Data;
-using System.Windows.Documents;
-using System.Windows.Input;
-using System.Windows.Media;
-using System.Windows.Media.Imaging;
-using System.Windows.Shapes;
-using System.Windows.Threading;
-using static AppLaboratory.Labs.Laborant2.AnalyserWork;
+using System.Collections.Generic;
+
 
 namespace AppLaboratory.Labs.Laborant2
 {
-    /// <summary>
-    /// Логика взаимодействия для AnalyserWork.xaml
-    /// </summary>
+    // Вспомогательный класс для отображения в списке
+    public class ServiceItem : INotifyPropertyChanged
+    {
+        public string ServiceName { get; set; }
+        public int ServiceCode { get; set; }
+        public int OrderId { get; set; }
+        public string AnalyzerName { get; set; }
+
+        private bool _isSelected;
+        public bool IsSelected
+        {
+            get => _isSelected;
+            set
+            {
+                _isSelected = value;
+                OnPropertyChanged("IsSelected");
+            }
+        }
+
+        private string _status;
+        public string Status { get => _status; set { _status = value; OnPropertyChanged("Status"); } }
+
+        public string StatusColor => Status == "Необходим повторный забор биоматериала" ? "#DC3545" : "#666666";
+
+        private string _resultValue;
+        public string ResultValue { get => _resultValue; set { _resultValue = value; OnPropertyChanged("ResultValue"); } }
+
+        private bool _canStart = true;
+        public bool CanStart { get => _canStart; set { _canStart = value; OnPropertyChanged("CanStart"); } }
+
+        private bool _showApprove = false;
+        public bool ShowApprove { get => _showApprove; set { _showApprove = value; OnPropertyChanged("ShowApprove"); } }
+
+        public event PropertyChangedEventHandler PropertyChanged;
+        void OnPropertyChanged(string prop) => PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(prop));
+    }
+
     public partial class AnalyserWork : Window
     {
+        public ObservableCollection<ServiceItem> Services { get; set; } = new ObservableCollection<ServiceItem>();
+        public ObservableCollection<ServiceItem> InProcessServices { get; set; } = new ObservableCollection<ServiceItem>();
+        private readonly string login;
+        private readonly int userType;
+
+        private bool isMultiSelectMode;
+
         public AnalyserWork()
+            : this(string.Empty, 4)
+        {
+        }
+
+        public AnalyserWork(string login, int userType)
         {
             InitializeComponent();
-        }
-        private void Window_Loaded(object sender, RoutedEventArgs e)
-        {
-            UslugiBioradCombo.IsEnabled = false;
-            UslugiLedetectCombo.IsEnabled = false;
-            OprosAnalyzerBiorad.IsEnabled = false;
-            OprosAnalyzerLedetect.IsEnabled = false;
 
-           
-        }
-        //нажати по анализатору Biorad
-        private void Button_Click(object sender, RoutedEventArgs e)
-        {
-            SQLClass.OpenConnection();
-            DataTable dt = SQLClass.ExecuteSql("select id_Услуги, id_Заказа, Статус\r\nFROM Услуга_В_заказе\r\ninner join services\r\non id_Услуги = services.Code where Analyser = '1' or Analyser = '1;2'");
-            DontServicesList.ItemsSource = dt.DefaultView;
-            UslugiBioradCombo.ItemsSource = SQLClass.Select("select Service \r\nfrom services\r\ninner join Услуга_В_заказе U\r\non Code = U.id_Услуги where Статус = 'Ожидание' and Analyser = '1' or Analyser = '1;2'", SQLClass.str);
-            UslugiBioradCombo.IsEnabled = true;
-            SQLClass.CloseConnection();
-        }
-        //нажати по анализатору Ledetect
-        private void Button_Click_1(object sender, RoutedEventArgs e)
-        {
-            SQLClass.OpenConnection();
-            DataTable dt = SQLClass.ExecuteSql("select id_Услуги, id_Заказа, Статус\r\nFROM Услуга_В_заказе\r\ninner join services\r\non id_Услуги = services.Code where Analyser = '2' or Analyser = '1;2'");
-            DontServicesList.ItemsSource = dt.DefaultView;
-            UslugiLedetectCombo.ItemsSource = SQLClass.Select("select Service \r\nfrom services\r\ninner join Услуга_В_заказе U\r\non Code = U.id_Услуги where Статус = 'Ожидание' and Analyser = '2' or Analyser = '1;2'", SQLClass.str);
-            UslugiLedetectCombo.IsEnabled = true;
-            SQLClass.CloseConnection();
-        }
-        public class Services
-        {
-            public int serviceCode { get; set; }
-            public string result { get; set; }
-        }
-        public class GetAnalizator
-        {
-            public string patient { get; set; } // хранит пациента
-            public List<Services> services { get; set; } // хранит услуги
-            public int progress { get; set; }
-        }
-        //private void Sent_Reserch_Biorad_Click(object sender)
-        //{
-        //    DispatcherTimer timer = new DispatcherTimer();
-        //    timer.Interval = TimeSpan.FromSeconds(1);
-        //    int count = 0;
-        //    timer.Tick += (_, __) =>
-        //    {
-        //        count++;
-        //        ProgressBiorad.Value = (count / 30.0) * 100; // Обновляем значение ProgressBar
-        //        if (ProgressBiorad.Value >= 100) // Проверяем значение ProgressBar
-        //        {
-        //            timer.Stop(); // Останавливаем таймер
-        //            MessageBox.Show("ProgressBar заполнен!"); // Выводим сообщение
-        //        }
-        //    };
-        //    timer.Start();
+            this.login = login;
+            this.userType = userType;
 
-        //}
+            DontServicesList.ItemsSource = Services;
+            InProcessList.ItemsSource = InProcessServices;
 
-        private void Sent_Reserch_Biorad_Click(object sender, RoutedEventArgs e)
+            SelectColumn.Width = 0;
+            BulkSendButton.Visibility = Visibility.Collapsed;
+            BulkSendButton.IsEnabled = false;
+        }
+
+        private void Window_Loaded(object sender, RoutedEventArgs e) { }
+
+        private void Button_Click(object sender, RoutedEventArgs e) => LoadData("Biorad");
+        private void Button_Click_1(object sender, RoutedEventArgs e) => LoadData("Ledetect");
+
+        private void LoadData(string analyzerName)
         {
-            if (UslugiBioradCombo.SelectedItem != null)
+            string code = (analyzerName == "Biorad") ? "1" : "2";
+
+            // 1. Запрос для "Новых" и "Повторных"
+            string sqlNew = $@"SELECT s.Service, u.id_Услуги, u.id_Заказа, u.Статус 
+                       FROM Услуга_В_заказе u INNER JOIN services s ON u.id_Услуги = s.Code 
+                       WHERE (s.Analyser = '{code}' OR s.Analyser = '1;2') 
+                       AND (u.Статус = 'Ожидание' OR u.Статус = 'Необходим повторный забор биоматериала')";
+
+            // 2. Запрос для тех, что уже "В работе"
+            string sqlProcess = $@"SELECT s.Service, u.id_Услуги, u.id_Заказа, u.Статус, u.Result 
+                       FROM Услуга_В_заказе u 
+                       INNER JOIN services s ON u.id_Услуги = s.Code 
+                       WHERE (s.Analyser = '{code}' OR s.Analyser = '1;2') 
+                       AND (u.Статус = 'Отправлена на исследование'
+                       OR u.Статус = 'Ожидает подтверждения лаборанта')";
+
+            FillCollection(Services, sqlNew, analyzerName);
+            FillCollection(InProcessServices, sqlProcess, analyzerName);
+        }
+        private void FillCollection(ObservableCollection<ServiceItem> col, string sql, string analyzerName)
+        {
+            var dt = SQLClass.ExecuteSql(sql);
+            col.Clear();
+            foreach (System.Data.DataRow row in dt.Rows)
             {
-                Services services1 = new Services();
-                services1.serviceCode = SQLClass.GetIdService(UslugiBioradCombo.SelectedItem.ToString());//получение кода из комбо
-                List<Services> services = new List<Services>();
-                services.Add(services1);
-
-                string patient = "1";
-
-                //SQLClass.GetIdPIZDEC(UslugiBioradCombo.SelectedItem.ToString());
-                //string patient = SQLClass.GetIdPIZDEC(UslugiBioradCombo.SelectedItem.ToString()).ToString();
-
-                // работа с API
-
-                var httpWebRequest = (HttpWebRequest)WebRequest.Create($"http://localhost:5000/api/analyzer/Biorad");
-                httpWebRequest.ContentType = "application/json";
-                httpWebRequest.Method = "POST";
-
-                using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
+                var item = new ServiceItem
                 {
-                    string json = new JavaScriptSerializer().Serialize(new
+                    ServiceName = row["Service"].ToString(),
+                    ServiceCode = Convert.ToInt32(row["id_Услуги"]),
+                    OrderId = Convert.ToInt32(row["id_Заказа"]),
+                    Status = row["Статус"].ToString(),
+                    AnalyzerName = analyzerName
+                };
+                // Если загружаем из БД уже отправленную услугу, даем возможность увидеть результат
+                if (item.Status == "Отправлена на исследование")
+                {
+                    item.CanStart = false;
+                    // Если в базе уже есть результат, показываем кнопки
+                    if (row.Table.Columns.Contains("Result") && !string.IsNullOrEmpty(row["Result"].ToString()))
                     {
-                        patient,
-                        services
-                    });
+                        item.ResultValue = row["Result"].ToString();
+                        item.ShowApprove = true;
+                    }
+                }
+                else if (item.Status == "Ожидает подтверждения лаборанта")
+                {
+                    item.CanStart = false;
+                    item.ShowApprove = true;
 
-                    streamWriter.Write(json);
+                    // ВАЖНО: подгружаем результат из БД
+                    if (row.Table.Columns.Contains("Result") && !string.IsNullOrEmpty(row["Result"].ToString()))
+                    {
+                        item.ResultValue = row["Result"].ToString();
+                    }
+                }
+                col.Add(item);
+            }
+        }
+
+        private void RejectRow_Click(object sender, RoutedEventArgs e)
+        {
+            var item = (sender as FrameworkElement).DataContext as ServiceItem;
+            if (item == null) return;
+
+            var dr = MessageBox.Show("Вы уверены, что хотите отклонить результат? Потребуется повторный забор биоматериала.",
+                                     "Отмена результата", MessageBoxButton.YesNo, MessageBoxImage.Question);
+
+            if (dr == MessageBoxResult.Yes)
+            {
+                string newStatus = "Необходим повторный забор биоматериала";
+                SQLClass.RejectServiceAndClearResult(item.OrderId, item.ServiceCode, newStatus);
+
+                // Убираем из списка "В работе" и переносим в "Очередь"
+                InProcessServices.Remove(item);
+                item.Status = newStatus;
+                item.ShowApprove = false;
+                item.CanStart = true;
+                item.ResultValue = "";
+                Services.Add(item);
+            }
+        }
+
+        private async void SendRow_Click(object sender, RoutedEventArgs e)
+        {
+            var item = (sender as FrameworkElement).DataContext as ServiceItem;
+            if (item == null) return;
+
+            string previousStatus = item.Status;
+
+            item.CanStart = false;
+            item.Status = "Подключение...";
+
+            Services.Remove(item);
+            InProcessServices.Add(item);
+
+            try
+            {
+                await RunAnalyzer(item);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка: {ex.Message}", "Внимание", MessageBoxButton.OK, MessageBoxImage.Error);
+
+                InProcessServices.Remove(item);
+                Services.Add(item);
+
+                // ВОЗВРАЩАЕМ ВСЁ НАЗАД
+                item.Status = previousStatus;
+                item.CanStart = true;
+
+                // сбрасываем статус в БД обратно на "Ожидание"
+                SQLClass.UpdateServiceStatus(item.OrderId, item.ServiceCode, previousStatus);
+            }
+        }
+
+        private async Task RunAnalyzer(ServiceItem item)
+        {
+            using (var client = new HttpClient())
+            {
+                // Формируем JSON
+                var payload = new { patient = item.OrderId.ToString(), services = new[] { new { serviceCode = item.ServiceCode } } };
+                var jsonReq = new JavaScriptSerializer().Serialize(payload);
+                var content = new StringContent(jsonReq, Encoding.UTF8, "application/json");
+
+                HttpResponseMessage resp;
+                try
+                {
+                    // Отправляем POST
+                    resp = await client.PostAsync($"http://localhost:5000/api/analyzer/{item.AnalyzerName}", content);
+                }
+                catch
+                {
+                    throw new Exception("Не удалось установить соединение с анализатором. Проверьте запуск LIMSAnalyzers.exe");
                 }
 
-                HttpWebResponse httpResponse = (HttpWebResponse)httpWebRequest.GetResponse(); // отправка запроса на API
-
-                // cпращиваем хорошо ли  отиправлен запрось
-                if (httpResponse.StatusCode == HttpStatusCode.OK)
+                if (resp.IsSuccessStatusCode)
                 {
-                    MessageBox.Show("Услуги успешно отправлены!");
+                    // ТОЛЬКО ТЕПЕРЬ, когда API принял запрос, обновляем базу
+                    item.Status = "В работе...";
+                    SQLClass.UpdateServiceStatus(item.OrderId, item.ServiceCode, "Отправлена на исследование");
 
-                    DispatcherTimer timer = new DispatcherTimer();
-                    timer.Interval = TimeSpan.FromSeconds(1);
-                    int count = 0;
-                    timer.Tick += (_, __) =>
-                    {
-                        count++;
-                        ProgressBiorad.Value = (count / 3.0) * 100; // Обновляем значение ProgressBar
-                        if (ProgressBiorad.Value >= 100) // Проверяем значение ProgressBar
-                        {
-                            timer.Stop(); // Останавливаем таймер
-                            MessageBox.Show("Done!"); // Выводим сообщение
-                            OprosAnalyzerBiorad.IsEnabled = true;
-                            Sent_Reserch_Biorad.IsEnabled = false;
-                        }
-                    };
-                    timer.Start();
+                    // Запускаем опрос результата
+                    await StartPolling(item);
                 }
                 else
                 {
-                    MessageBox.Show("Ошибка отправки!");
+                    // Если анализатор ответил, но не 200 OK (например 400 или 500)
+                    string errorInfo = await resp.Content.ReadAsStringAsync();
+                    throw new Exception($"Анализатор отклонил запрос: {resp.StatusCode}. {errorInfo}");
                 }
             }
-            else
-            {
-                MessageBox.Show("Выберите услугу");
-            }
-            
         }
 
-        private void OprosAnalyzerBiorad_Click(object sender, RoutedEventArgs e)
+        private async Task StartPolling(ServiceItem item)
         {
-            DispatcherTimer timer = new DispatcherTimer();
-            timer.Interval = TimeSpan.FromSeconds(1);
-            int count = 0;
-            timer.Tick += (_, __) =>
+            ProgressBar pb = item.AnalyzerName == "Biorad" ? ProgressBiorad : ProgressLedetect;
+            TextBlock statusText = item.AnalyzerName == "Biorad" ? StatusBioradText : StatusLedetectText;
+
+            using (var client = new HttpClient())
             {
-                count++;
-                ProgressBiorad.Value = (count / 3.0) * 100; // Обновляем значение ProgressBar
-                if (ProgressBiorad.Value >= 100) // Проверяем значение ProgressBar
+                bool isDone = false;
+
+                while (!isDone)
                 {
-                    timer.Stop(); // Останавливаем таймер
-                    MessageBox.Show("Done!"); // Выводим сообщение
+                    await Task.Delay(10);
 
+                    var resp = await client.GetAsync($"http://localhost:5000/api/analyzer/{item.AnalyzerName}");
+                    resp.EnsureSuccessStatusCode();
 
+                    string json = await resp.Content.ReadAsStringAsync();
+                    var data = new JavaScriptSerializer().Deserialize<GetAnalizator>(json);
 
-                    GetAnalizator getAnalizators = new GetAnalizator();
+                    if (data == null)
+                        continue;
 
-                    var httpWebRequest1 = (HttpWebRequest)WebRequest.Create($"http://localhost:5000/api/analyzer/Biorad");
-                    httpWebRequest1.ContentType = "application/json";
-                    httpWebRequest1.Method = "GET";
-                    try
+                    if (data.progress.HasValue)
                     {
-                        var httpResponse1 = (HttpWebResponse)httpWebRequest1.GetResponse();
-                        if (httpResponse1.StatusCode == HttpStatusCode.OK)
-                        {
-                            using (Stream stream = httpResponse1.GetResponseStream())
-                            {
-                                StreamReader reader = new StreamReader(stream);
-                                string json = reader.ReadToEnd();
-                                JavaScriptSerializer serializer = new JavaScriptSerializer();
-                                getAnalizators = serializer.Deserialize<GetAnalizator>(json);
+                        int progress = Math.Max(0, Math.Min(100, data.progress.Value));
 
-                                foreach ( var services in getAnalizators.services)
-                                {
-                                    string patient = getAnalizators.patient;
-
-                                    MessageBox.Show($"Получение результата :{getAnalizators.patient} , {services.result}");
-                                }
-
-                                MessageBoxButton btnMessageBox = MessageBoxButton.YesNoCancel;
-                                MessageBoxImage icnMessageBox = MessageBoxImage.Question;
-
-                                MessageBoxResult rsltMessageBox = MessageBox.Show("Принять результат?", "Окно", btnMessageBox, icnMessageBox);
-
-                                switch (rsltMessageBox)
-                                {
-                                    case MessageBoxResult.Yes:
-                                        MessageBox.Show("Изменение статуса на выполнено..");
-                                        break;
-
-                                    case MessageBoxResult.No:
-                                        /* ... */
-                                        break;
-
-                                    case MessageBoxResult.Cancel:
-                                        /* ... */
-                                        break;
-                                }
-
-                                // MessageBox.Show($"Данные:{getAnalizators.patient} , {getAnalizators.services[0].ToString()}");
-
-                            }
-                        }
-                        else
-                        {
-                            MessageBox.Show("ЧО errrors");
-                        }
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show(ex.ToString());
+                        pb.Value = progress;
+                        statusText.Text = $"Статус: {progress}%";
+                        item.Status = $"В работе ({progress}%)";
                     }
 
-                }
-
-            };
-            timer.Start();
-            
-        }
-
-        private void Sent_Reserch_Ledetect_Click(object sender, RoutedEventArgs e)
-        {
-            if (UslugiLedetectCombo.SelectedItem != null)
-            {
-                Services services1 = new Services();
-                services1.serviceCode = SQLClass.GetIdService(UslugiLedetectCombo.SelectedItem.ToString());//получение кода из комбо
-                List<Services> services = new List<Services>();
-                services.Add(services1);
-
-                string patient = "2";
-
-                //SQLClass.GetIdPIZDEC(UslugiBioradCombo.SelectedItem.ToString());
-                //string patient = SQLClass.GetIdPIZDEC(UslugiBioradCombo.SelectedItem.ToString()).ToString();
-
-                // работа с API
-
-                var httpWebRequest = (HttpWebRequest)WebRequest.Create($"http://localhost:5000/api/analyzer/Ledetect");
-                httpWebRequest.ContentType = "application/json";
-                httpWebRequest.Method = "POST";
-
-                using (var streamWriter = new StreamWriter(httpWebRequest.GetRequestStream()))
-                {
-                    string json = new JavaScriptSerializer().Serialize(new
+                    if (data.services != null)
                     {
-                        patient,
-                        services
-                    });
-
-                    streamWriter.Write(json);
-                }
-
-                HttpWebResponse httpResponse = (HttpWebResponse)httpWebRequest.GetResponse(); // отправка запроса на API
-
-                // cпращиваем хорошо ли  отиправлен запрось
-                if (httpResponse.StatusCode == HttpStatusCode.OK)
-                {
-                    MessageBox.Show("Услуги успешно отправлены!");
-
-                    DispatcherTimer timer = new DispatcherTimer();
-                    timer.Interval = TimeSpan.FromSeconds(1);
-                    int count = 0;
-                    timer.Tick += (_, __) =>
-                    {
-                        count++;
-                        ProgressLedetect.Value = (count / 3.0) * 100; // Обновляем значение ProgressBar
-                        if (ProgressLedetect.Value >= 100) // Проверяем значение ProgressBar
+                        var res = data.services.FirstOrDefault(s => s.serviceCode == item.ServiceCode);
+                        if (res != null)
                         {
-                            timer.Stop(); // Останавливаем таймер
-                            MessageBox.Show("Done!"); // Выводим сообщение
-                            OprosAnalyzerLedetect.IsEnabled = true;
-                            Sent_Reserch_Ledetect.IsEnabled = false;
+                            pb.Value = 100;
+                            statusText.Text = "Статус: 100%";
+                            item.ResultValue = res.Result;
+
+                            SQLClass.SaveServiceResult(item.OrderId, item.ServiceCode, item.ResultValue);
+
+                            item.Status = "Ожидает подтверждения лаборанта";
+                            item.ShowApprove = true;
+
+                            SQLClass.UpdateServiceStatus(item.OrderId, item.ServiceCode, "Ожидает подтверждения лаборанта");
+
+                            isDone = true;
                         }
-                    };
-                    timer.Start();
-                }
-                else
-                {
-                    MessageBox.Show("Ошибка отправки!");
+                    }
                 }
             }
-            else
+        }
+
+        private void ApproveRow_Click(object sender, RoutedEventArgs e)
+        {
+            var item = (sender as FrameworkElement).DataContext as ServiceItem;
+            if (item == null) return;
+
+            SQLClass.UpdateServiceStatus(item.OrderId, item.ServiceCode, "Выполнена");
+            SQLClass.SaveServiceResult(item.OrderId, item.ServiceCode, item.ResultValue);
+
+            InProcessServices.Remove(item);
+
+            if (item.AnalyzerName == "Biorad") ProgressBiorad.Value = 0;
+            else ProgressLedetect.Value = 0;
+        }
+
+        private void ToggleMultiSelect_Click(object sender, RoutedEventArgs e)
+        {
+            isMultiSelectMode = !isMultiSelectMode;
+
+            SelectColumn.Width = isMultiSelectMode ? 50 : 0;
+            BulkSendButton.Visibility = isMultiSelectMode ? Visibility.Visible : Visibility.Collapsed;
+            ToggleMultiSelectButton.Content = isMultiSelectMode ? "Отменить выбор" : "Выбрать несколько услуг";
+
+            foreach (var item in Services)
             {
-                MessageBox.Show("Выберите услугу");
+                item.IsSelected = false;
+            }
+
+            UpdateBulkSendButtonState();
+        }
+
+        private void UpdateBulkSendButtonState()
+        {
+            int selectedCount = Services.Count(x => x.IsSelected);
+
+            BulkSendButton.IsEnabled = selectedCount > 0;
+            BulkSendButton.Content = selectedCount > 0
+                ? $"Исследовать выбранные ({selectedCount})"
+                : "Исследовать выбранные";
+        }
+
+        private void SelectionCheckBox_Changed(object sender, RoutedEventArgs e)
+        {
+            UpdateBulkSendButtonState();
+        }
+
+        private async void BulkSend_Click(object sender, RoutedEventArgs e)
+        {
+            var selectedItems = Services.Where(x => x.IsSelected).ToList();
+
+            if (selectedItems.Count == 0)
+            {
+                MessageBox.Show("Выберите хотя бы одну услугу.");
+                return;
+            }
+
+            if (selectedItems.Select(x => x.OrderId).Distinct().Count() > 1)
+            {
+                MessageBox.Show("Сейчас можно отправлять несколько услуг только в рамках одного заказа.");
+                return;
+            }
+
+            foreach (var item in selectedItems)
+            {
+                item.CanStart = false;
+                item.Status = "Подключение...";
+                item.IsSelected = false;
+
+                Services.Remove(item);
+                InProcessServices.Add(item);
+            }
+
+            UpdateBulkSendButtonState();
+
+            try
+            {
+                await RunAnalyzerBatch(selectedItems);
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"Ошибка: {ex.Message}", "Внимание", MessageBoxButton.OK, MessageBoxImage.Error);
+
+                foreach (var item in selectedItems)
+                {
+                    InProcessServices.Remove(item);
+                    Services.Add(item);
+                    item.Status = "Ожидание";
+                    item.CanStart = true;
+                    SQLClass.UpdateServiceStatus(item.OrderId, item.ServiceCode, "Ожидание");
+                }
             }
         }
-        private void OprosAnalyzerLedetect_Click(object sender, RoutedEventArgs e)
+
+        private async Task RunAnalyzerBatch(List<ServiceItem> items)
         {
-            DispatcherTimer timer = new DispatcherTimer();
-            timer.Interval = TimeSpan.FromSeconds(1);
-            int count = 0;
-            timer.Tick += (_, __) =>
+            if (items == null || items.Count == 0)
+                return;
+
+            string analyzerName = items[0].AnalyzerName;
+
+            using (var client = new HttpClient())
             {
-                count++;
-                ProgressLedetect.Value = (count / 3.0) * 100; // Обновляем значение ProgressBar
-                if (ProgressLedetect.Value >= 100) // Проверяем значение ProgressBar
+                var payload = new
                 {
-                    timer.Stop(); // Останавливаем таймер
-                    MessageBox.Show("Done!"); // Выводим сообщение
+                    patient = items[0].OrderId.ToString(),
+                    services = items.Select(x => new { serviceCode = x.ServiceCode }).ToArray()
+                };
 
-                    GetAnalizator getAnalizators = new GetAnalizator();
+                var jsonReq = new JavaScriptSerializer().Serialize(payload);
+                var content = new StringContent(jsonReq, Encoding.UTF8, "application/json");
 
-                    var httpWebRequest1 = (HttpWebRequest)WebRequest.Create($"http://localhost:5000/api/analyzer/Ledetect");
-                    httpWebRequest1.ContentType = "application/json";
-                    httpWebRequest1.Method = "GET";
-                    try
+                HttpResponseMessage resp;
+                try
+                {
+                    resp = await client.PostAsync($"http://localhost:5000/api/analyzer/{analyzerName}", content);
+                }
+                catch
+                {
+                    throw new Exception("Не удалось установить соединение с анализатором. Проверьте запуск LIMSAnalyzers.exe");
+                }
+
+                if (!resp.IsSuccessStatusCode)
+                {
+                    string errorInfo = await resp.Content.ReadAsStringAsync();
+                    throw new Exception($"Анализатор отклонил запрос: {resp.StatusCode}. {errorInfo}");
+                }
+
+                foreach (var item in items)
+                {
+                    item.Status = "В работе...";
+                    SQLClass.UpdateServiceStatus(item.OrderId, item.ServiceCode, "Отправлена на исследование");
+                }
+
+                await StartPollingBatch(items);
+            }
+        }
+
+        private async Task StartPollingBatch(List<ServiceItem> items)
+        {
+            if (items == null || items.Count == 0)
+                return;
+
+            ProgressBar pb = items[0].AnalyzerName == "Biorad" ? ProgressBiorad : ProgressLedetect;
+            TextBlock statusText = items[0].AnalyzerName == "Biorad" ? StatusBioradText : StatusLedetectText;
+
+            using (var client = new HttpClient())
+            {
+                bool isDone = false;
+
+                while (!isDone)
+                {
+                    await Task.Delay(2000);
+
+                    var resp = await client.GetAsync($"http://localhost:5000/api/analyzer/{items[0].AnalyzerName}");
+                    resp.EnsureSuccessStatusCode();
+
+                    string json = await resp.Content.ReadAsStringAsync();
+                    var data = new JavaScriptSerializer().Deserialize<GetAnalizator>(json);
+
+                    if (data == null)
+                        continue;
+
+                    if (data.progress.HasValue)
                     {
-                        var httpResponse1 = (HttpWebResponse)httpWebRequest1.GetResponse();
-                        if (httpResponse1.StatusCode == HttpStatusCode.OK)
+                        int progress = Math.Max(0, Math.Min(100, data.progress.Value));
+                        pb.Value = progress;
+                        statusText.Text = $"Статус: {progress}%";
+
+                        foreach (var item in items)
                         {
-                            using (Stream stream = httpResponse1.GetResponseStream())
-                            {
-                                StreamReader reader = new StreamReader(stream);
-                                string json = reader.ReadToEnd();
-                                JavaScriptSerializer serializer = new JavaScriptSerializer();
-                                getAnalizators = serializer.Deserialize<GetAnalizator>(json);
-
-                                foreach (var services in getAnalizators.services)
-                                {
-                                    string patient = getAnalizators.patient;
-
-                                    MessageBox.Show($"Получение результата :{getAnalizators.patient} , {services.result}");
-                                }
-
-                                MessageBoxButton btnMessageBox = MessageBoxButton.YesNoCancel;
-                                MessageBoxImage icnMessageBox = MessageBoxImage.Question;
-
-                                MessageBoxResult rsltMessageBox = MessageBox.Show("Принять результат?", "Окно", btnMessageBox, icnMessageBox);
-
-                                switch (rsltMessageBox)
-                                {
-                                    case MessageBoxResult.Yes:
-                                        MessageBox.Show("Изменение статуса на выполнено..");
-                                        UslugiLedetectCombo.SelectedItem.ToString();
-                                        break;
-
-                                    case MessageBoxResult.No:
-                                        OprosAnalyzerLedetect.IsEnabled = false;
-                                        ProgressLedetect.Value = 0;
-                                        Sent_Reserch_Ledetect.IsEnabled = true;
-
-                                        break;
-
-                                    case MessageBoxResult.Cancel:
-                                        OprosAnalyzerLedetect.IsEnabled = false;
-                                        ProgressLedetect.Value = 0;
-                                        Sent_Reserch_Ledetect.IsEnabled = true;
-                                        break;
-                                }
-
-                                // MessageBox.Show($"Данные:{getAnalizators.patient} , {getAnalizators.services[0].ToString()}");
-
-                            }
-                        }
-                        else
-                        {
-                            MessageBox.Show("ЧО errrors");
+                            item.Status = $"В работе ({progress}%)";
                         }
                     }
-                    catch (Exception ex)
+
+                    if (data.services != null)
                     {
-                        MessageBox.Show(ex.ToString());
+                        int completedCount = 0;
+
+                        foreach (var item in items)
+                        {
+                            var res = data.services.FirstOrDefault(s => s.serviceCode == item.ServiceCode);
+                            if (res == null)
+                                continue;
+
+                            item.ResultValue = res.Result;
+                            item.Status = "Ожидает подтверждения лаборанта";
+                            item.ShowApprove = true;
+                            item.CanStart = false;
+
+                            SQLClass.SaveServiceResult(item.OrderId, item.ServiceCode, item.ResultValue);
+                            SQLClass.UpdateServiceStatus(item.OrderId, item.ServiceCode, "Ожидает подтверждения лаборанта");
+
+                            completedCount++;
+                        }
+
+                        if (completedCount == items.Count)
+                        {
+                            pb.Value = 100;
+                            statusText.Text = "Статус: 100%";
+                            isDone = true;
+                        }
                     }
                 }
-            };
-            timer.Start();
+            }
+        }
+
+        private void BackButton_Click(object sender, RoutedEventArgs e)
+        {
+            Lab_res labResWindow = new Lab_res(login, userType);
+            labResWindow.Show();
+            Close();
         }
     }
 }

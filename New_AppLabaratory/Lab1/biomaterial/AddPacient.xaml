@@ -86,7 +86,7 @@
                 <TextBox Grid.Row="1" Grid.Column="1" x:Name="FIO"/>
 
                 <Label Grid.Row="2" Content="Дата рождения:"/>
-                <TextBox Grid.Row="2" Grid.Column="1" x:Name="WasBorn" Tag="гггг-мм-дд"/>
+                <TextBox Grid.Row="2" Grid.Column="1" x:Name="WasBorn" Tag="дд.мм.гггг"/>
 
                 <Label Grid.Row="3" Content="Паспорт:"/>
                 <TextBox Grid.Row="3" Grid.Column="1" x:Name="Pass"/>
